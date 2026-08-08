@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polyps 360-3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Tinta e papel */
+  --ink:#17120F;
+  --ink-2:#4A423B;
+  --ink-3:#8A8078;
+  --paper:#FFFFFF;
+  --desk:#E4E1DB;
+  --desk-2:#EDEBE6;
+  --rule:#DCD8D1;
+  --rule-soft:#EAE7E1;
+
+  /* Marca — usado com parcimônia */
+  --espresso:#241B16;
+  --gold:#B8893C;
+  --gold-ink:#7A5A20;
+  --gold-wash:#FBF6EC;
+
+  /* Estados */
+  --ok:#2C6247;
+  --ok-wash:#EDF4F0;
+  --warn:#8A6410;
+  --warn-wash:#FCF6E7;
+  --stop:#8E3826;
+  --stop-wash:#FAEEEB;
+
+  --shadow-page:0 1px 2px rgba(23,18,15,.05),0 12px 28px -12px rgba(23,18,15,.16);
+  --step:4px;
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;background:var(--desk);color:var(--ink);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:3px;}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+
+/* ============ BARRA DE COMANDO ============ */
+.command{
+  position:sticky;top:0;z-index:60;background:var(--espresso);
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:0 20px;height:52px;
+}
+.mark{display:flex;align-items:center;gap:10px;min-width:0;}
+.mark svg{width:26px;height:20px;flex-shrink:0;}
+.mark-name{
+  font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;
+  color:#F5F1EA;letter-spacing:.005em;line-height:1;white-space:nowrap;
+}
+.mark-name span{
+  display:block;font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:500;
+  letter-spacing:.22em;color:var(--gold);margin-top:3px;
+}
+.protocol{display:flex;align-items:center;gap:10px;min-width:0;}
+.protocol-lab{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:#8D8078;white-space:nowrap;
+}
+.seg{display:flex;background:rgba(0,0,0,.28);border-radius:7px;padding:3px;}
+.seg label{
+  font-size:12px;font-weight:500;color:#C9BFB4;padding:5px 12px;border-radius:5px;
+  cursor:pointer;white-space:nowrap;transition:background .12s,color .12s;
+}
+.seg label:hover{color:#EFE8DF;}
+.seg label.on{background:var(--gold);color:#231A12;font-weight:600;}
+.seg input{position:absolute;opacity:0;pointer-events:none;}
+
+/* ============ TRILHO DE ETAPAS ============ */
+.steps{
+  position:sticky;top:52px;z-index:55;background:var(--desk-2);
+  border-bottom:1px solid var(--rule);
+  display:flex;gap:0;padding:0 12px;overflow-x:auto;scrollbar-width:none;
+}
+.steps::-webkit-scrollbar{display:none;}
+.step{
+  display:flex;align-items:baseline;gap:7px;background:none;border:none;cursor:pointer;
+  padding:11px 14px 10px;border-bottom:2px solid transparent;white-space:nowrap;
+  color:var(--ink-3);transition:color .12s,border-color .12s;
+}
+.step:hover{color:var(--ink-2);}
+.step .n{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.04em;}
+.step .t{font-size:12.5px;font-weight:500;}
+.step.on{color:var(--ink);border-bottom-color:var(--gold);}
+.step.on .n{color:var(--gold-ink);}
+.step.on .t{font-weight:600;}
+
+/* ============ ÁREA DE TRABALHO ============ */
+.work{
+  display:grid;grid-template-columns:minmax(0,1fr) 264px;gap:24px;align-items:start;
+  max-width:1180px;margin:0 auto;padding:24px 20px 80px;
+}
+@media(max-width:1000px){.work{grid-template-columns:minmax(0,1fr);}}
+
+/* Página branca sobre a mesa */
+.page{
+  background:var(--paper);border:1px solid var(--rule);border-radius:2px;
+  box-shadow:var(--shadow-page);padding:36px 40px 40px;
+}
+@media(max-width:640px){.page{padding:24px 20px 28px;}}
+
+.panel{display:none;}
+.panel.on{display:block;}
+
+.page-head{margin-bottom:26px;padding-bottom:16px;border-bottom:1px solid var(--rule-soft);}
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold-ink);margin:0 0 7px;
+}
+.page-title{
+  font-family:'Source Serif 4',serif;font-size:25px;font-weight:600;letter-spacing:-.012em;
+  margin:0;line-height:1.2;
+}
+.page-sub{font-size:13px;color:var(--ink-2);margin:8px 0 0;max-width:62ch;}
+
+/* Blocos de campo */
+.group{margin-top:30px;}
+.group:first-of-type{margin-top:0;}
+.group-head{
+  display:flex;align-items:center;gap:11px;margin-bottom:16px;
+}
+.group-head .gl{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);white-space:nowrap;
+}
+.group-head .gr{flex:1;height:1px;background:var(--rule-soft);}
+
+.f{padding:15px 0;border-bottom:1px solid var(--rule-soft);}
+.f:last-child{border-bottom:none;}
+.f-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;}
+.f-name{font-size:13.5px;font-weight:600;letter-spacing:-.005em;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.f-key{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--ink-3);}
+.f-hint{font-size:11.5px;color:var(--ink-3);margin:8px 0 0;}
+.f-read{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-2);
+  margin:9px 0 0;padding:6px 10px;background:var(--desk-2);border-radius:3px;display:inline-block;
+}
+
+/* Selo de pontos */
+.pts{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+  color:var(--ink-3);border:1px solid var(--rule);border-radius:3px;
+  padding:2px 7px;white-space:nowrap;flex-shrink:0;transition:color .15s,border-color .15s,background .15s;
+}
+.pts.live{color:var(--gold-ink);border-color:#E4D3AE;background:var(--gold-wash);}
+
+/* Botão de glossário */
+.gloss-btn{
+  width:16px;height:16px;border-radius:50%;border:1px solid var(--rule);
+  background:var(--paper);color:var(--ink-3);font-size:10px;font-weight:600;
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  line-height:1;flex-shrink:0;padding:0;transition:all .12s;
+}
+.gloss-btn:hover{border-color:var(--gold);color:var(--gold-ink);background:var(--gold-wash);}
+.gloss{
+  display:none;margin:12px 0 4px;padding:15px 17px;
+  background:var(--desk-2);border-left:2px solid var(--gold);border-radius:0 3px 3px 0;
+  font-size:12.5px;line-height:1.65;color:var(--ink-2);
+}
+.gloss.open{display:block;}
+.gloss strong{color:var(--ink);font-weight:600;}
+.gloss ul{margin:8px 0 0;padding-left:17px;}
+.gloss li{margin-bottom:5px;}
+.gloss li:last-child{margin-bottom:0;}
+
+/* Controles */
+.opts{display:flex;gap:6px;flex-wrap:wrap;}
+.opts label{
+  font-size:12.5px;font-weight:450;color:var(--ink-2);background:var(--paper);
+  border:1px solid var(--rule);border-radius:4px;padding:7px 13px;cursor:pointer;
+  transition:all .12s;
+}
+.opts label:hover{border-color:var(--ink-3);}
+.opts label.on{background:var(--espresso);color:#F2ECE3;border-color:var(--espresso);font-weight:500;}
+.opts input{position:absolute;opacity:0;pointer-events:none;}
+
+.opts.wide label{flex:1;text-align:center;min-width:52px;}
+
+input[type=number],input[type=text],select{
+  font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;color:var(--ink);
+  border:1px solid var(--rule);border-radius:4px;padding:8px 11px;background:var(--paper);
+  width:100%;transition:border-color .12s;
+}
+input[type=number]:focus,input[type=text]:focus,select:focus{border-color:var(--gold);}
+input[type=number]{font-family:'IBM Plex Mono',monospace;}
+select{cursor:pointer;}
+input::placeholder{color:#B6ADA4;}
+
+input[type=range]{width:100%;accent-color:var(--gold);height:22px;cursor:pointer;}
+.scale{
+  display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;
+  font-size:10px;color:var(--ink-3);margin-top:-2px;
+}
+.scale b{color:var(--ink);font-weight:600;}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:560px){.two{grid-template-columns:1fr;}}
+
+/* Marcadores */
+.check{
+  display:flex;align-items:flex-start;gap:11px;font-size:13px;color:var(--ink-2);
+  padding:11px 13px;border:1px solid var(--rule);border-radius:4px;margin-bottom:7px;
+  cursor:pointer;background:var(--paper);transition:all .12s;line-height:1.5;
+}
+.check:hover{border-color:var(--ink-3);}
+.check:has(input:checked){background:var(--gold-wash);border-color:#E0CDA6;color:var(--ink);}
+.check input{width:16px;height:16px;accent-color:var(--gold-ink);flex-shrink:0;margin:2px 0 0;}
+
+/* Item EUFOREA com glossário */
+.euf{border:1px solid var(--rule);border-radius:4px;margin-bottom:7px;background:var(--paper);transition:all .12s;}
+.euf:has(input:checked){background:var(--gold-wash);border-color:#E0CDA6;}
+.euf-row{display:flex;align-items:center;gap:11px;padding:12px 13px;cursor:pointer;}
+.euf-row input{width:16px;height:16px;accent-color:var(--gold-ink);flex-shrink:0;}
+.euf-row .lab{flex:1;font-size:13px;color:var(--ink-2);}
+.euf:has(input:checked) .lab{color:var(--ink);font-weight:500;}
+.euf .gloss{margin:0 13px 13px;}
+
+/* Grades de pontuação */
+.grid-lm,.grid-cosi{display:grid;gap:7px 12px;align-items:center;}
+.grid-lm{grid-template-columns:minmax(0,1fr) 74px 74px;}
+.grid-cosi{grid-template-columns:minmax(0,1fr) 78px 78px;}
+.grid-h{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:center;padding-bottom:2px;
+}
+.grid-r{font-size:12.5px;color:var(--ink-2);}
+
+/* Questionários */
+.q{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
+  padding:7px 0;border-bottom:1px solid var(--rule-soft);
+}
+.q:last-of-type{border-bottom:none;}
+.q-txt{display:flex;align-items:center;gap:9px;min-width:0;}
+.q-n{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;
+  color:var(--ink-3);min-width:20px;flex-shrink:0;text-align:right;
+}
+.q-txt input{font-size:12.5px;padding:6px 9px;}
+.q-scale{display:flex;gap:3px;flex-shrink:0;}
+.q-scale label{
+  width:27px;height:27px;display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--ink-3);
+  background:var(--paper);border:1px solid var(--rule);border-radius:3px;cursor:pointer;
+  transition:all .1s;
+}
+.q-scale label:hover{border-color:var(--ink-3);color:var(--ink-2);}
+.q-scale label.on{background:var(--espresso);color:#F2ECE3;border-color:var(--espresso);font-weight:600;}
+.q-scale input{position:absolute;opacity:0;pointer-events:none;}
+.q-total{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-2);
+  margin-top:13px;padding-top:11px;border-top:1px solid var(--rule);
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+.q-total b{font-size:15px;font-weight:600;color:var(--ink);}
+
+/* Barra de salvamento dos enunciados */
+.save-bar{
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  padding:9px 12px;margin:0 0 14px;background:var(--desk-2);
+  border-radius:3px;font-size:11.5px;color:var(--ink-2);
+}
+.save-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+.save-acts{margin-left:auto;display:flex;gap:5px;}
+.mini{
+  font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:500;
+  padding:4px 10px;border-radius:3px;border:1px solid var(--rule);
+  background:var(--paper);color:var(--ink-2);cursor:pointer;transition:all .12s;
+}
+.mini:hover{border-color:var(--ink-3);color:var(--ink);}
+
+/* ============ VEREDITOS ============ */
+.verdict{
+  border:1px solid var(--rule);border-radius:4px;padding:15px 17px;margin-bottom:12px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+}
+.verdict .vl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);}
+.verdict .vt{font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;letter-spacing:-.01em;}
+.verdict .vn{font-family:'IBM Plex Mono',monospace;font-size:23px;font-weight:600;letter-spacing:-.02em;}
+.verdict.ok{background:var(--ok-wash);border-color:#C3DACE;}
+.verdict.ok .vt{color:var(--ok);}
+.verdict.warn{background:var(--warn-wash);border-color:#E8D5A4;}
+.verdict.warn .vt{color:var(--warn);}
+.verdict.stop{background:var(--stop-wash);border-color:#E4C0B6;}
+.verdict.stop .vt{color:var(--stop);}
+.verdict.mute{background:var(--desk-2);}
+.verdict.mute .vt{color:var(--ink-2);}
+
+/* ============ TRILHO DE ESCORE (assinatura) ============ */
+.rail{position:sticky;top:104px;}
+@media(max-width:1000px){
+  .rail{position:static;margin-bottom:0;}
+  .work{padding-top:16px;}
+}
+.gauge{
+  background:var(--paper);border:1px solid var(--rule);border-radius:2px;
+  box-shadow:var(--shadow-page);padding:20px 20px 18px;
+}
+.gauge-lab{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 14px;
+}
+.gauge-num{
+  font-family:'IBM Plex Mono',monospace;font-size:46px;font-weight:600;letter-spacing:-.035em;
+  line-height:.9;color:var(--ink);display:flex;align-items:baseline;gap:4px;
+}
+.gauge-num .den{font-size:15px;font-weight:400;color:var(--ink-3);letter-spacing:0;}
+.gauge-state{
+  font-family:'Source Serif 4',serif;font-size:14.5px;font-weight:600;margin:9px 0 0;
+  letter-spacing:-.005em;line-height:1.3;
+}
+.gauge-state.ok{color:var(--ok);}
+.gauge-state.mute{color:var(--ink-3);}
+
+/* Régua de precisão */
+.ruler{margin:17px 0 0;}
+.ruler svg{display:block;width:100%;height:34px;overflow:visible;}
+.ruler-cap{
+  display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;
+  font-size:9.5px;color:var(--ink-3);margin-top:5px;
+}
+.ruler-cap .cut{color:var(--gold-ink);font-weight:600;}
+
+.gauge-rows{margin-top:17px;padding-top:15px;border-top:1px solid var(--rule-soft);}
+.grow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 0;font-size:11.5px;}
+.grow .k{color:var(--ink-3);}
+.grow .v{font-family:'IBM Plex Mono',monospace;font-weight:500;color:var(--ink-2);text-align:right;}
+
+/* ============ LAUDO ============ */
+.doc{
+  background:var(--paper);border:1px solid var(--rule);padding:44px 46px;
+  font-family:'Source Serif 4',serif;font-size:13.5px;line-height:1.72;color:var(--ink);
+  white-space:pre-wrap;border-radius:2px;
+}
+@media(max-width:640px){.doc{padding:26px 22px;font-size:13px;}}
+.doc-empty{color:var(--ink-3);font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-style:italic;}
+
+.btn{
+  font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;
+  padding:10px 18px;border-radius:4px;border:1px solid transparent;cursor:pointer;
+  transition:all .12s;
+}
+.btn-go{background:var(--espresso);color:#F2ECE3;}
+.btn-go:hover{background:#332720;}
+.btn-alt{background:var(--paper);color:var(--ink-2);border-color:var(--rule);}
+.btn-alt:hover{border-color:var(--ink-3);color:var(--ink);}
+.actions{display:flex;gap:8px;margin:22px 0 20px;flex-wrap:wrap;}
+
+/* ============ BARRA DE STATUS ============ */
+.status{
+  position:fixed;bottom:0;left:0;right:0;z-index:58;height:30px;
+  background:var(--espresso);display:flex;align-items:center;gap:20px;
+  padding:0 20px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#9C9188;
+  overflow-x:auto;scrollbar-width:none;
+}
+.status::-webkit-scrollbar{display:none;}
+.status .si{display:flex;gap:7px;white-space:nowrap;}
+.status .si b{color:#E4D9CB;font-weight:500;}
+.status .sp{color:var(--gold);}
+
+/* ============ IMPRESSÃO ============ */
+@media print{
+  .command,.steps,.rail,.actions,.status,.no-print{display:none!important;}
+  body{background:#fff;font-size:11pt;}
+  .work{display:block;max-width:none;padding:0;}
+  .page{border:none;box-shadow:none;padding:0;}
+  .doc{border:none;padding:0;font-size:11pt;line-height:1.62;}
+  @page{margin:2cm;}
+}
+</style>
+</head>
+<body>
+
+<!-- BARRA DE COMANDO -->
+<header class="command">
+  <div class="mark">
+    <svg viewBox="0 0 60 44" aria-hidden="true">
+      <path d="M4 40C4 26 14 16 20 15" fill="none" stroke="#B8893C" stroke-width="5" stroke-linecap="round"/>
+      <path d="M22 40C22 22 34 10 42 8" fill="none" stroke="#B8893C" stroke-width="5" stroke-linecap="round"/>
+      <path d="M40 40C40 18 54 4 58 3" fill="none" stroke="#B8893C" stroke-width="5" stroke-linecap="round"/>
+    </svg>
+    <div class="mark-name">Polyps<span>360 · 3D</span></div>
+  </div>
+  <div class="protocol">
+    <span class="protocol-lab">Diretriz</span>
+    <div class="seg" id="protocoloSelector">
+      <label class="on"><input type="radio" name="protocolo" value="aborl" checked>ABORL-CCF</label>
+      <label><input type="radio" name="protocolo" value="euforea">EUFOREA</label>
+    </div>
+  </div>
+</header>
+
+<!-- ETAPAS -->
+<nav class="steps" id="steps">
+  <button class="step on" data-tab="prereq"><span class="n">01</span><span class="t">Pré-requisito</span></button>
+  <button class="step" data-tab="pontuacao"><span class="n">02</span><span class="t">Pontuação</span></button>
+  <button class="step" data-tab="asma"><span class="n">03</span><span class="t">Asma</span></button>
+  <button class="step" data-tab="resultado"><span class="n">04</span><span class="t">Resultado</span></button>
+  <button class="step" data-tab="acompanhamento"><span class="n">05</span><span class="t">Acompanhamento</span></button>
+  <button class="step" data-tab="laudo"><span class="n">06</span><span class="t">Laudo</span></button>
+</nav>
+
+<div class="work">
+
+  <!-- ===== PÁGINA ===== -->
+  <main>
+
+  <!-- 01 PRÉ-REQUISITO -->
+  <section class="panel on" id="panel-prereq">
+    <div class="page">
+      <div class="page-head">
+        <p class="eyebrow">Etapa 01</p>
+        <h1 class="page-title">Pré-requisito cirúrgico</h1>
+        <p class="page-sub">RSCcPN confirmada com cirurgia nasossinusal prévia adequada — abertura ampla de maxilar, etmoide e esfenoide, com acesso frontal Draf IIa ou mais amplo — ou contraindicação cirúrgica absoluta.</p>
+      </div>
+
+      <div class="f">
+        <div class="f-head"><span class="f-name">Situação cirúrgica do paciente</span></div>
+        <div class="opts wide" id="prereqToggle">
+          <label class="on"><input type="radio" name="prereq" value="sim" checked>Cumprido</label>
+          <label><input type="radio" name="prereq" value="duvida">Verificar com CoSI</label>
+          <label><input type="radio" name="prereq" value="nao">Não cumprido</label>
+        </div>
+      </div>
+
+      <div id="prereqBanner" class="verdict" style="margin-top:18px;"></div>
+    </div>
+
+    <div class="page" id="cosiCard" style="display:none;margin-top:20px;">
+      <div class="page-head">
+        <p class="eyebrow">Ferramenta auxiliar</p>
+        <h1 class="page-title">Completion of Surgery Index
+          <button class="gloss-btn" data-gloss="cosi" aria-label="O que significa cada pontuação">?</button>
+        </h1>
+        <p class="page-sub">Mede objetivamente, pela tomografia, se a cirurgia anterior foi completa. Corte em 70.</p>
+      </div>
+
+      <div class="gloss" id="gloss-cosi">
+        <strong>Como pontuar cada seio</strong>
+        <ul>
+          <li><strong>0</strong> — anatomia óssea não alterada: o seio não foi operado ou não há sinal de abertura cirúrgica.</li>
+          <li><strong>5</strong> — cirurgia parcial: abertura visível de maxilar ou esfenoide, etmoidectomia parcial, ou acesso frontal Draf 2a.</li>
+          <li><strong>10</strong> — cirurgia completa: abertura acima de 70% de maxilar ou esfenoide, remoção completa das células etmoidais, ou Draf 2b.</li>
+        </ul>
+        <strong style="display:block;margin-top:10px;">Leitura</strong>
+        Total de 70 ou mais indica cirurgia prévia completa, e a recidiva justifica terapia sistêmica. Abaixo de 70, a cirurgia foi incompleta e a revisão cirúrgica tende a dar mais resultado que o biológico.
+      </div>
+
+      <div class="group">
+        <div class="group-head"><span class="gl">Achado por seio</span><span class="gr"></span></div>
+        <div class="grid-cosi">
+          <span></span><span class="grid-h">Direito</span><span class="grid-h">Esquerdo</span>
+          <span class="grid-r">Maxilar</span>
+          <select data-cosi="direito.maxilar"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
+          <select data-cosi="esquerdo.maxilar"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
+          <span class="grid-r">Etmoidal</span>
+          <select data-cosi="direito.etmoide"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
+          <select data-cosi="esquerdo.etmoide"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
+          <span class="grid-r">Esfenoidal</span>
+          <select data-cosi="direito.esfenoide"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
+          <select data-cosi="esquerdo.esfenoide"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
+          <span class="grid-r">Frontal</span>
+          <select data-cosi="direito.frontal"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
+          <select data-cosi="esquerdo.frontal"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><span class="gl">Acréscimos</span><span class="gr"></span></div>
+        <label class="check"><input type="checkbox" data-cosi-bonus="turb.direito">Turbinectomia média parcial à direita <span style="color:var(--ink-3);">&nbsp;+5</span></label>
+        <label class="check"><input type="checkbox" data-cosi-bonus="turb.esquerdo">Turbinectomia média parcial à esquerda <span style="color:var(--ink-3);">&nbsp;+5</span></label>
+        <label class="check"><input type="checkbox" data-cosi-bonus="draf3.direito">Draf 3 à direita <span style="color:var(--ink-3);">&nbsp;+10</span></label>
+        <label class="check"><input type="checkbox" data-cosi-bonus="draf3.esquerdo">Draf 3 à esquerda <span style="color:var(--ink-3);">&nbsp;+10</span></label>
+      </div>
+
+      <div id="cosiBanner" class="verdict" style="margin-top:18px;"></div>
+    </div>
+  </section>
+
+  <!-- 02 PONTUAÇÃO -->
+  <section class="panel" id="panel-pontuacao">
+
+    <div class="page" id="tabela5Card">
+      <div class="page-head">
+        <p class="eyebrow">Etapa 02 · Diretriz brasileira</p>
+        <h1 class="page-title">Questionário de elegibilidade</h1>
+        <p class="page-sub">Onze itens somam de 0 a 25 pontos. A partir de 14, há indicação de terapia biológica — e quanto maior o escore, mais forte a indicação.</p>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><span class="gl">Gravidade dos sintomas</span><span class="gr"></span></div>
+
+        <div class="f">
+          <div class="f-head">
+            <span class="f-name"><span class="f-key">a</span> SNOT-22 <button class="gloss-btn" data-gloss="snot">?</button></span>
+            <span class="pts" id="pts-a">0</span>
+          </div>
+          <div class="gloss" id="gloss-snot">
+            Questionário de qualidade de vida nasossinusal com 22 itens, cada um de 0 (nenhum problema) a 5 (problema gravíssimo), somando até 110. Na pontuação da diretriz: abaixo de 20 não pontua, de 20 a 50 vale 1 ponto, acima de 50 vale 2 pontos.
+            <br><br><em>Cole os enunciados da sua cópia licenciada nos campos abaixo.</em>
+          </div>
+          <div class="save-bar">
+            <span class="save-dot"></span>
+            <span id="save-state">Nenhum enunciado salvo neste navegador</span>
+            <span class="save-acts">
+              <button class="mini" id="btn-exportar-enunciados">Exportar</button>
+              <button class="mini" id="btn-importar-enunciados">Importar</button>
+              <button class="mini" id="btn-limpar-enunciados">Limpar</button>
+              <input type="file" id="file-importar" accept="application/json" style="display:none;">
+            </span>
+          </div>
+          <div id="snotContainer"></div>
+          <div class="q-total"><span>Total</span><span id="snot-total"><b>0</b> / 110</span></div>
+        </div>
+
+        <div class="f">
+          <div class="f-head">
+            <span class="f-name"><span class="f-key">b</span> Escala visual analógica <button class="gloss-btn" data-gloss="eva">?</button></span>
+            <span class="pts" id="pts-b">0</span>
+          </div>
+          <div class="gloss" id="gloss-eva">
+            O paciente marca de 0 a 10 o quanto cada sintoma o incomoda. Avalie obstrução nasal e rinorreia separadamente — a diretriz considera o pior dos dois. Abaixo de 3 não pontua, de 3 a 7 vale 1 ponto, acima de 7 vale 2 pontos.
+          </div>
+          <p class="f-hint" style="margin:0 0 4px;">Obstrução ou congestão nasal</p>
+          <input type="range" id="eva-obstrucao" min="0" max="10" step="0.1" value="0">
+          <div class="scale"><span>0</span><b id="eva-obstrucao-val">0,0</b><span>10</span></div>
+          <p class="f-hint" style="margin:14px 0 4px;">Rinorreia</p>
+          <input type="range" id="eva-rinorreia" min="0" max="10" step="0.1" value="0">
+          <div class="scale"><span>0</span><b id="eva-rinorreia-val">0,0</b><span>10</span></div>
+          <p class="f-read" id="eva-pior">Pior valor: 0,0</p>
+        </div>
+
+        <div class="f">
+          <div class="f-head">
+            <span class="f-name"><span class="f-key">c</span> Olfato <button class="gloss-btn" data-gloss="olfato">?</button></span>
+            <span class="pts" id="pts-c">0</span>
+          </div>
+          <div class="gloss" id="gloss-olfato">
+            Escolha o teste psicofísico aplicado e informe o escore bruto — a classificação segue a Tabela 4 do Consenso brasileiro. Normosmia ou hiposmia leve não pontua, hiposmia moderada vale 1 ponto, hiposmia grave ou anosmia vale 2 pontos. O autorrelato do paciente não substitui o teste.
+          </div>
+          <div class="two">
+            <select id="olfato-teste">
+              <option value="upsit">UPSIT</option>
+              <option value="cccrc">Connecticut (CCCRC)</option>
+              <option value="multiscent20">Multiscent-20</option>
+            </select>
+            <select id="olfato-sexo"><option value="f">Feminino</option><option value="m">Masculino</option></select>
+          </div>
+          <input type="number" id="olfato-escore" placeholder="escore bruto do teste" style="margin-top:9px;">
+          <p class="f-read" id="olfato-resultado">—</p>
+          <div id="olfato-ambiguo" style="display:none;margin-top:11px;">
+            <p class="f-hint" style="margin:0 0 7px;">As escalas não separam hiposmia moderada de grave — defina pelo quadro clínico.</p>
+            <div class="opts" id="olfato-grau-group">
+              <label class="on"><input type="radio" name="olfato-grau" value="1" checked>Moderada · 1 ponto</label>
+              <label><input type="radio" name="olfato-grau" value="2">Grave · 2 pontos</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="f">
+          <div class="f-head">
+            <span class="f-name"><span class="f-key">d</span> Cirurgias nasossinusais prévias</span>
+            <span class="pts" id="pts-d">0</span>
+          </div>
+          <div class="opts" id="grupo-d">
+            <label class="on"><input type="radio" name="d" value="0" checked>Nenhuma</label>
+            <label><input type="radio" name="d" value="1">1</label>
+            <label><input type="radio" name="d" value="2">2</label>
+            <label><input type="radio" name="d" value="3">3 ou mais, ou contraindicação</label>
+          </div>
+        </div>
+
+        <div class="f">
+          <div class="f-head">
+            <span class="f-name"><span class="f-key">e</span> Ciclos de corticoide sistêmico no ano</span>
+            <span class="pts" id="pts-e">0</span>
+          </div>
+          <div class="opts" id="grupo-e">
+            <label class="on"><input type="radio" name="e" value="0" checked>Nenhum</label>
+            <label><input type="radio" name="e" value="1">1 ou 2</label>
+            <label><input type="radio" name="e" value="2">Mais de 2</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><span class="gl">Extensão da doença</span><span class="gr"></span></div>
+
+        <div class="f">
+          <div class="f-head">
+            <span class="f-name"><span class="f-key">f</span> Escore de pólipos nasais <button class="gloss-btn" data-gloss="nps">?</button></span>
+            <span class="pts" id="pts-f">0</span>
+          </div>
+          <div class="gloss" id="gloss-nps">
+            <strong>Graduação endoscópica, cada lado de 0 a 4</strong>
+            <ul>
+              <li><strong>0</strong> — sem pólipos.</li>
+              <li><strong>1</strong> — pólipos pequenos no meato médio, sem ultrapassar a borda inferior do corneto médio.</li>
+              <li><strong>2</strong> — pólipos abaixo da borda inferior do corneto médio. Em quem já fez turbinectomia média, conta quando o pólipo alcança o topo do corneto inferior.</li>
+              <li><strong>3</strong> — pólipos grandes alcançando a borda inferior do corneto inferior, ou pólipos mediais ao corneto médio.</li>
+              <li><strong>4</strong> — pólipos obstruindo completamente a cavidade nasal inferior, tocando o assoalho.</li>
+            </ul>
+            <strong style="display:block;margin-top:10px;">Soma dos dois lados</strong>
+            Zero não pontua, 1 a 2 vale 1 ponto, 3 a 4 vale 2 pontos, 5 ou mais vale 3 pontos.
+          </div>
+          <p class="f-hint" style="margin:0 0 6px;">Fossa nasal direita</p>
+          <div class="opts wide" id="nps-d-group">
+            <label class="on"><input type="radio" name="nps-d" value="0" checked>0</label>
+            <label><input type="radio" name="nps-d" value="1">1</label>
+            <label><input type="radio" name="nps-d" value="2">2</label>
+            <label><input type="radio" name="nps-d" value="3">3</label>
+            <label><input type="radio" name="nps-d" value="4">4</label>
+          </div>
+          <p class="f-hint" style="margin:12px 0 6px;">Fossa nasal esquerda</p>
+          <div class="opts wide" id="nps-e-group">
+            <label class="on"><input type="radio" name="nps-e" value="0" checked>0</label>
+            <label><input type="radio" name="nps-e" value="1">1</label>
+            <label><input type="radio" name="nps-e" value="2">2</label>
+            <label><input type="radio" name="nps-e" value="3">3</label>
+            <label><input type="radio" name="nps-e" value="4">4</label>
+          </div>
+          <p class="f-read" id="nps-resultado">Total: 0 de 8</p>
+        </div>
+
+        <div class="f">
+          <div class="f-head">
+            <span class="f-name"><span class="f-key">g</span> Extensão tomográfica <button class="gloss-btn" data-gloss="lm">?</button></span>
+            <span class="pts" id="pts-g">0</span>
+          </div>
+          <div class="gloss" id="gloss-lm">
+            <strong>Lund-Mackay</strong>
+            <ul>
+              <li>Cada seio, por lado: <strong>0</strong> livre, <strong>1</strong> opacificação parcial, <strong>2</strong> opacificação completa.</li>
+              <li>Complexo óstio-meatal: apenas <strong>0</strong> quando pérvio ou <strong>2</strong> quando obstruído — não existe valor intermediário.</li>
+            </ul>
+            <strong style="display:block;margin-top:10px;">Total bilateral até 24</strong>
+            De 0 a 4 não pontua, 5 a 8 vale 1 ponto, 9 a 16 vale 2 pontos, acima de 16 vale 3 pontos.
+          </div>
+          <div class="grid-lm">
+            <span></span><span class="grid-h">Direito</span><span class="grid-h">Esquerdo</span>
+            <span class="grid-r">Frontal</span>
+            <select data-lm="direito.frontal"><option>0</option><option>1</option><option>2</option></select>
+            <select data-lm="esquerdo.frontal"><option>0</option><option>1</option><option>2</option></select>
+            <span class="grid-r">Maxilar</span>
+            <select data-lm="direito.maxilar"><option>0</option><option>1</option><option>2</option></select>
+            <select data-lm="esquerdo.maxilar"><option>0</option><option>1</option><option>2</option></select>
+            <span class="grid-r">Etmoidal anterior</span>
+            <select data-lm="direito.etmoide_anterior"><option>0</option><option>1</option><option>2</option></select>
+            <select data-lm="esquerdo.etmoide_anterior"><option>0</option><option>1</option><option>2</option></select>
+            <span class="grid-r">Etmoidal posterior</span>
+            <select data-lm="direito.etmoide_posterior"><option>0</option><option>1</option><option>2</option></select>
+            <select data-lm="esquerdo.etmoide_posterior"><option>0</option><option>1</option><option>2</option></select>
+            <span class="grid-r">Esfenoidal</span>
+            <select data-lm="direito.esfenoide"><option>0</option><option>1</option><option>2</option></select>
+            <select data-lm="esquerdo.esfenoide"><option>0</option><option>1</option><option>2</option></select>
+            <span class="grid-r">Complexo óstio-meatal</span>
+            <select data-lm="direito.omc"><option value="0">0</option><option value="2">2</option></select>
+            <select data-lm="esquerdo.omc"><option value="0">0</option><option value="2">2</option></select>
+          </div>
+          <p class="f-read" id="lm-resultado">Total: 0 de 24</p>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><span class="gl">Comorbidades tipo 2</span><span class="gr"></span></div>
+
+        <div class="f">
+          <div class="f-head">
+            <span class="f-name"><span class="f-key">h</span> Asma <button class="gloss-btn" data-gloss="asma">?</button></span>
+            <span class="pts" id="pts-h">0</span>
+          </div>
+          <div class="gloss" id="gloss-asma">
+            <strong>A gravidade é definida pelo tratamento necessário para manter o controle</strong>
+            <ul>
+              <li><strong>Leve</strong> — controlada com tratamento de baixa intensidade, como corticoide inalatório em dose baixa conforme necessário.</li>
+              <li><strong>Moderada</strong> — controlada com corticoide inalatório em dose baixa a média associado a broncodilatador de longa ação.</li>
+              <li><strong>Grave</strong> — exige corticoide inalatório em dose alta com broncodilatador de longa ação, ou permanece descontrolada apesar disso.</li>
+            </ul>
+            A etapa 03 traz a avaliação estruturada por biomarcadores e controle.
+          </div>
+          <div class="opts" id="grupo-h">
+            <label class="on"><input type="radio" name="h" value="0" checked>Ausente</label>
+            <label><input type="radio" name="h" value="1">Leve</label>
+            <label><input type="radio" name="h" value="2">Moderada ou grave</label>
+          </div>
+        </div>
+
+        <div class="f">
+          <div class="f-head">
+            <span class="f-name"><span class="f-key">i</span> Intolerância a AINE ou AAS <button class="gloss-btn" data-gloss="aine">?</button></span>
+            <span class="pts" id="pts-i">0</span>
+          </div>
+          <div class="gloss" id="gloss-aine">
+            <strong>O que caracteriza</strong>
+            Reação respiratória — rinorreia, congestão nasal, dispneia — desencadeada por anti-inflamatórios não esteroides ou ácido acetilsalicílico. Quando somada a pólipos e asma, configura a doença respiratória exacerbada por aspirina, um fenótipo mais grave e de maior recidiva.
+            <strong style="display:block;margin-top:10px;">Roteiro diagnóstico</strong>
+            <ul>
+              <li>Há sintomas respiratórios após uso de AINE?</li>
+              <li>O histórico reforça: mais de uma reação relatada, reação a dois ou mais AINEs diferentes, última reação há menos de cinco anos.</li>
+              <li>O quadro nasossinusal reforça: recidiva de pólipos, perda do olfato, asma moderada a grave, intolerância ao álcool, eosinofilia sanguínea.</li>
+              <li>Persistindo dúvida, o teste de provocação oral, brônquica ou nasal com aspirina confirma ou exclui.</li>
+            </ul>
+          </div>
+          <div class="opts" id="grupo-i">
+            <label class="on"><input type="radio" name="i" value="0" checked>Ausente</label>
+            <label><input type="radio" name="i" value="2">Presente</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><span class="gl">Biomarcadores</span><span class="gr"></span></div>
+
+        <div class="f">
+          <div class="f-head">
+            <span class="f-name"><span class="f-key">j</span> Eosinofilia sérica</span>
+            <span class="pts" id="pts-j">0</span>
+          </div>
+          <input type="number" id="input-eosino-serica" min="0" value="120">
+          <p class="f-hint">Células por microlitro. Abaixo de 150 não pontua, 150 a 300 vale 1 ponto, acima de 300 vale 2 pontos.</p>
+        </div>
+
+        <div class="f">
+          <div class="f-head">
+            <span class="f-name"><span class="f-key">k</span> Eosinofilia tecidual</span>
+            <span class="pts" id="pts-k">0</span>
+          </div>
+          <input type="number" id="input-eosino-tecidual" min="0" value="5">
+          <p class="f-hint">Por campo de grande aumento. Abaixo de 10 não pontua, 10 a 43 vale 1 ponto, acima de 43 vale 2 pontos.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="euforeaCard">
+      <div class="page-head">
+        <p class="eyebrow">Etapa 02 · Diretriz europeia</p>
+        <h1 class="page-title">Critérios EUFOREA</h1>
+        <p class="page-sub">Cinco critérios, sem pontuação cumulativa. Três ou mais indicam terapia biológica no paciente já operado.</p>
+      </div>
+
+      <div class="euf">
+        <label class="euf-row"><input type="checkbox" data-euforea="inflamacao_tipo2" checked><span class="lab">Evidência de inflamação tipo 2</span><button class="gloss-btn" data-gloss="euf1">?</button></label>
+        <div class="gloss" id="gloss-euf1">Confirmada por eosinófilo sérico a partir de 150 células por microlitro ou eosinofilia tecidual a partir de 10 por campo de grande aumento. É o marcador biológico central da doença.</div>
+      </div>
+      <div class="euf">
+        <label class="euf-row"><input type="checkbox" data-euforea="necessidade_ce_sistemico"><span class="lab">Necessidade de corticoide sistêmico</span><button class="gloss-btn" data-gloss="euf2">?</button></label>
+        <div class="gloss" id="gloss-euf2">Vale tanto para quem precisou de corticoide oral para controlar a doença quanto para quem tem contraindicação ao seu uso. Sinaliza doença que não se controla só com terapia tópica.</div>
+      </div>
+      <div class="euf">
+        <label class="euf-row"><input type="checkbox" data-euforea="qualidade_vida_afetada" checked><span class="lab">Qualidade de vida significativamente afetada</span><button class="gloss-btn" data-gloss="euf3">?</button></label>
+        <div class="gloss" id="gloss-euf3">Medida preferencialmente pelo SNOT-22. A literatura usa 40 como referência prática de impacto significativo.</div>
+      </div>
+      <div class="euf">
+        <label class="euf-row"><input type="checkbox" data-euforea="perda_olfato_significativa" checked><span class="lab">Perda significativa do olfato</span><button class="gloss-btn" data-gloss="euf4">?</button></label>
+        <div class="gloss" id="gloss-euf4">Hiposmia importante ou anosmia, confirmada por teste psicofísico validado — UPSIT, Connecticut ou Multiscent-20. O autorrelato subestima a perda com frequência.</div>
+      </div>
+      <div class="euf">
+        <label class="euf-row"><input type="checkbox" data-euforea="asma_comorbida"><span class="lab">Asma comórbida diagnosticada</span><button class="gloss-btn" data-gloss="euf5">?</button></label>
+        <div class="gloss" id="gloss-euf5">Na maioria dos casos compartilha o mesmo endótipo tipo 2 da polipose. Sua presença reforça a indicação e orienta a escolha da molécula. A etapa 03 detalha a avaliação.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 ASMA -->
+  <section class="panel" id="panel-asma">
+    <div class="page">
+      <div class="page-head">
+        <p class="eyebrow">Etapa 03 · Via aérea inferior</p>
+        <h1 class="page-title">Fenótipo da asma
+          <button class="gloss-btn" data-gloss="gina">?</button>
+        </h1>
+        <p class="page-sub">Biomarcadores que sugerem inflamação tipo 2. Basta um deles. Servem para classificar o fenótipo, não para decidir sozinhos a indicação.</p>
+      </div>
+      <div class="gloss" id="gloss-gina">
+        A própria diretriz GINA separa as duas coisas: estes biomarcadores dizem se a inflamação é tipo 2, enquanto a indicação de biológico depende de exacerbações, corticoide oral e sintomas persistentes. Se eosinófilo ou FeNO vierem baixos na primeira medida, repita até três vezes com uma a duas semanas de intervalo — o corticoide suprime esses marcadores e mascara o fenótipo real.
+      </div>
+
+      <div class="two" style="margin-top:20px;">
+        <div class="f" style="border:none;padding:0;">
+          <p class="f-hint" style="margin:0 0 6px;">Eosinófilo sanguíneo · células/µL</p>
+          <input type="number" id="gina-eos" value="200">
+        </div>
+        <div class="f" style="border:none;padding:0;">
+          <p class="f-hint" style="margin:0 0 6px;">FeNO · ppb</p>
+          <input type="number" id="gina-feno" value="18">
+        </div>
+      </div>
+      <div class="two" style="margin-top:14px;">
+        <div class="f" style="border:none;padding:0;">
+          <p class="f-hint" style="margin:0 0 6px;">Eosinófilo no escarro · %</p>
+          <input type="number" id="gina-escarro" value="0" step="0.1">
+        </div>
+        <div class="f" style="border:none;padding:0;display:flex;align-items:flex-end;">
+          <label class="check" style="width:100%;margin:0;"><input type="checkbox" id="gina-alergia">Asma dirigida por alérgeno</label>
+        </div>
+      </div>
+
+      <div id="ginaBanner" class="verdict" style="margin-top:20px;"></div>
+      <p class="f-hint" id="ginaAviso" style="margin-top:-4px;"></p>
+    </div>
+
+    <div class="page" style="margin-top:20px;">
+      <div class="page-head">
+        <p class="eyebrow">Indicação pela via inferior</p>
+        <h1 class="page-title">Critério de biológico para asma</h1>
+        <p class="page-sub">Diferente dos biomarcadores acima. Qualquer um destes já configura indicação.</p>
+      </div>
+      <div class="f">
+        <p class="f-hint" style="margin:0 0 6px;">Exacerbações no último ano</p>
+        <input type="number" id="gina-exac" value="2">
+      </div>
+      <label class="check"><input type="checkbox" id="gina-ocs">Uso crônico de corticoide oral</label>
+      <label class="check"><input type="checkbox" id="gina-sintomas">Sintomas persistentes apesar de corticoide inalatório com broncodilatador de longa ação otimizados</label>
+      <div id="ginaIndicBanner" class="verdict" style="margin-top:16px;"></div>
+    </div>
+
+    <div class="page" style="margin-top:20px;">
+      <div class="page-head">
+        <p class="eyebrow">Controle nas últimas quatro semanas</p>
+        <h1 class="page-title">Teste de controle da asma
+          <button class="gloss-btn" data-gloss="act">?</button>
+        </h1>
+        <p class="page-sub">Cinco perguntas, cada uma de 1 a 5. Cole os enunciados da sua cópia licenciada.</p>
+      </div>
+      <div class="gloss" id="gloss-act">
+        Escore abaixo de 20 indica asma não controlada, de 20 a 24 parcialmente controlada, e 25 totalmente controlada. Alimenta o critério de controle da asma no acompanhamento.
+      </div>
+      <div class="save-bar" style="margin-top:16px;">
+        <span class="save-dot"></span>
+        <span>Os enunciados ficam salvos junto com os do SNOT-22, na etapa 02.</span>
+      </div>
+      <div id="actContainer"></div>
+      <div id="actBanner" class="verdict" style="margin-top:18px;"></div>
+    </div>
+  </section>
+
+  <!-- 04 RESULTADO -->
+  <section class="panel" id="panel-resultado">
+    <div class="page">
+      <div class="page-head">
+        <p class="eyebrow">Etapa 04</p>
+        <h1 class="page-title">Elegibilidade</h1>
+        <p class="page-sub">Resultado conforme a diretriz selecionada na barra superior, recalculado a cada alteração.</p>
+      </div>
+      <div id="resultadoContent"></div>
+    </div>
+  </section>
+
+  <!-- 05 ACOMPANHAMENTO -->
+  <section class="panel" id="panel-acompanhamento">
+    <div class="page">
+      <div class="page-head">
+        <p class="eyebrow">Etapa 05 · Seis meses após o início</p>
+        <h1 class="page-title">Resposta ao tratamento</h1>
+        <p class="page-sub">Quatro ou cinco critérios caracterizam boa resposta, de um a três resposta moderada, e nenhum indica falha terapêutica.</p>
+      </div>
+      <label class="check"><input type="checkbox" data-t6="melhora_qualidade_vida" checked>Melhora da qualidade de vida — queda de 9 pontos ou mais no SNOT-22, ou escala visual analógica em 2 ou menos</label>
+      <label class="check"><input type="checkbox" data-t6="reducao_ce_oral" checked>Redução do corticoide oral para no máximo um ciclo por semestre</label>
+      <label class="check"><input type="checkbox" data-t6="melhora_olfato" checked>Melhora do olfato em pelo menos um grau</label>
+      <label class="check"><input type="checkbox" data-t6="reducao_epn">Redução de 2 pontos ou mais no escore endoscópico de pólipos</label>
+      <label class="check"><input type="checkbox" data-t6="controle_asma">Asma sem exacerbações no período</label>
+      <div id="t6Banner" class="verdict" style="margin-top:18px;"></div>
+    </div>
+  </section>
+
+  <!-- 06 LAUDO -->
+  <section class="panel" id="panel-laudo">
+    <div class="page no-print">
+      <div class="page-head">
+        <p class="eyebrow">Etapa 06</p>
+        <h1 class="page-title">Laudo</h1>
+        <p class="page-sub">Redigido a partir de tudo que foi preenchido nas etapas anteriores. Complete a identificação e o histórico, gere e revise antes de assinar.</p>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><span class="gl">Identificação</span><span class="gr"></span></div>
+        <div class="two">
+          <div><p class="f-hint" style="margin:0 0 6px;">Paciente</p><input type="text" id="laudo-nome" placeholder="Nome completo"></div>
+          <div><p class="f-hint" style="margin:0 0 6px;">Data</p><input type="text" id="laudo-data" placeholder="dia / mês / ano"></div>
+        </div>
+        <div style="margin-top:12px;"><p class="f-hint" style="margin:0 0 6px;">Médico e registro</p><input type="text" id="laudo-medico" placeholder="Nome e CRM"></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><span class="gl">Histórico</span><span class="gr"></span></div>
+        <div><p class="f-hint" style="margin:0 0 6px;">Cirurgias realizadas e datas</p><input type="text" id="laudo-cirurgias" placeholder="sinusectomia em 2021 e 2022"></div>
+        <div style="margin-top:12px;"><p class="f-hint" style="margin:0 0 6px;">Tempo até a recidiva</p><input type="text" id="laudo-recidiva" placeholder="cerca de 4 meses após ambas as cirurgias"></div>
+        <div style="margin-top:12px;"><p class="f-hint" style="margin:0 0 6px;">Tratamento tópico em uso</p><input type="text" id="laudo-topico" placeholder="corticoide nasal em spray e lavagem de alto volume"></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><span class="gl">Finalidade</span><span class="gr"></span></div>
+        <div class="opts wide" id="laudo-tipo">
+          <label class="on"><input type="radio" name="laudotipo" value="indicacao" checked>Indicação inicial</label>
+          <label><input type="radio" name="laudotipo" value="manutencao">Manutenção após seis meses</label>
+        </div>
+        <div style="margin-top:12px;"><p class="f-hint" style="margin:0 0 6px;">Molécula, se já definida</p><input type="text" id="laudo-molecula" placeholder="nome, dose e via de administração"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-go" id="btn-gerar-laudo">Gerar laudo</button>
+        <button class="btn btn-alt" id="btn-imprimir">Imprimir</button>
+      </div>
+    </div>
+
+    <div class="doc" id="laudoOut"><span class="doc-empty">O texto do laudo aparece aqui depois de gerado.</span></div>
+  </section>
+
+  </main>
+
+  <!-- ===== TRILHO DE ESCORE ===== -->
+  <aside class="rail">
+    <div class="gauge">
+      <p class="gauge-lab" id="gauge-label">Escore</p>
+      <div class="gauge-num"><span id="gauge-value">0</span><span class="den" id="gauge-den">/ 25</span></div>
+      <p class="gauge-state mute" id="gauge-state">Preenchendo</p>
+
+      <div class="ruler">
+        <svg viewBox="0 0 220 34" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="0" y1="22" x2="220" y2="22" stroke="#DCD8D1" stroke-width="1.5"/>
+          <line id="ruler-fill" x1="0" y1="22" x2="0" y2="22" stroke="#B8893C" stroke-width="1.5"/>
+          <line id="ruler-cut" x1="123" y1="13" x2="123" y2="31" stroke="#B8893C" stroke-width="1.5" stroke-dasharray="2 2"/>
+          <circle id="ruler-dot" cx="0" cy="22" r="4.5" fill="#17120F"/>
+        </svg>
+        <div class="ruler-cap">
+          <span>0</span>
+          <span class="cut" id="ruler-cutlab">corte 14</span>
+          <span id="ruler-max">25</span>
+        </div>
+      </div>
+
+      <div class="gauge-rows" id="gauge-rows"></div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- BARRA DE STATUS -->
+<div class="status">
+  <span class="si"><span class="sp">◆</span><span id="st-protocolo">ABORL-CCF</span></span>
+  <span class="si">SNOT-22 <b id="st-snot">0</b></span>
+  <span class="si">NPS <b id="st-nps">0</b></span>
+  <span class="si">Lund-Mackay <b id="st-lm">0</b></span>
+  <span class="si">ACT <b id="st-act">5</b></span>
+  <span class="si">Escore <b id="st-escore">0</b></span>
+</div>
+
+<script>
+/* ===== Motor de cálculo ===== */
+function calcularNPS(d,e){const t=d+e;let p;if(t===0)p=0;else if(t<=2)p=1;else if(t<=4)p=2;else p=3;return{total:t,pts:p};}
+function calcularLundMackay(d,e){const r=["frontal","maxilar","etmoide_anterior","etmoide_posterior","esfenoide"];const s=o=>r.reduce((a,k)=>a+Number(o[k]||0),0)+Number(o.omc||0);const t=s(d)+s(e);let p;if(t<=4)p=0;else if(t<=8)p=1;else if(t<=16)p=2;else p=3;return{total:t,pts:p};}
+function classificarOlfato(teste,esc,sexo){let c;if(teste==="upsit"){if(sexo==="f"){c=esc>34?"normosmia":esc>=17?"hiposmia":"anosmia";}else{c=esc>31?"normosmia":esc>=19?"hiposmia":"anosmia";}}else if(teste==="cccrc"){c=esc>=6?"normosmia":esc>=2?"hiposmia":"anosmia";}else{c=esc>=15?"normosmia":esc>=11?"hiposmia":"anosmia";}return c;}
+function classificarEva(v){return v<3?0:v<=7?1:2;}
+function calcularCoSI(a,bt,bd){const s=["maxilar","etmoide","esfenoide","frontal"];let t=0;for(const l of["direito","esquerdo"]){for(const x of s)t+=Number(a[l][x]);if(bt[l])t+=5;if(bd[l])t+=10;}return{total:t,completa:t>=70};}
+function calcularTabela5(it){const t=Object.values(it).reduce((a,b)=>a+b,0);const ind=t>=14;let f;if(!ind)f="não recomendado";else if(t<18)f="indicação moderada";else if(t<22)f="indicação forte";else f="indicação muito forte";return{total:t,indicado:ind,forca:f};}
+function calcularEuforea(c){const a=Object.values(c).filter(Boolean).length;return{atingidos:a,indicado:a>=3};}
+function calcularTabela6(c){const a=Object.values(c).filter(Boolean).length;let cl,co;if(a>=4){cl="boa resposta";co="manter tratamento";}else if(a>=1){cl="resposta moderada";co="manter tratamento";}else{cl="não respondedor";co="trocar biológico ou considerar nova cirurgia";}return{atingidos:a,classificacao:cl,conduta:co};}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ▼▼▼  ÚNICO LUGAR PARA EDITAR OS ENUNCIADOS  ▼▼▼
+
+   Cole aqui o texto oficial de cada item, entre as aspas.
+   Não apague as aspas, a vírgula do final, nem os números.
+   Se um item ficar com as aspas vazias "", o campo aparece em branco
+   para ser preenchido na tela.
+
+   Se o texto tiver aspas duplas dentro, troque-as por aspas simples.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const ENUNCIADOS_SNOT22 = {
+   1: "",
+   2: "",
+   3: "",
+   4: "",
+   5: "",
+   6: "",
+   7: "",
+   8: "",
+   9: "",
+  10: "",
+  11: "",
+  12: "",
+  13: "",
+  14: "",
+  15: "",
+  16: "",
+  17: "",
+  18: "",
+  19: "",
+  20: "",
+  21: "",
+  22: ""
+};
+
+const ENUNCIADOS_ACT = {
+  1: "",
+  2: "",
+  3: "",
+  4: "",
+  5: ""
+};
+
+/* ▲▲▲  FIM DA ÁREA DE EDIÇÃO — não mexer daqui para baixo  ▲▲▲ */
+
+
+/* ===== Montagem dos questionários ===== */
+const snotC=document.getElementById("snotContainer");
+for(let i=1;i<=22;i++){
+  const row=document.createElement("div");row.className="q";
+  let sc=`<div class="q-scale">`;
+  for(let v=0;v<=5;v++)sc+=`<label${v===0?' class="on"':''}><input type="radio" name="snot-${i}" value="${v}"${v===0?" checked":""}>${v}</label>`;
+  sc+=`</div>`;
+  const fixo=(ENUNCIADOS_SNOT22[i]||"").trim();
+  row.innerHTML=`<div class="q-txt"><span class="q-n">${i}</span><input type="text" data-snot-item="${i}" value="${fixo.replace(/"/g,"&quot;")}" placeholder="enunciado do item ${i}"></div>${sc}`;
+  snotC.appendChild(row);
+}
+const actC=document.getElementById("actContainer");
+for(let i=1;i<=5;i++){
+  const row=document.createElement("div");row.className="q";
+  let sc=`<div class="q-scale">`;
+  for(let v=1;v<=5;v++)sc+=`<label${v===1?' class="on"':''}><input type="radio" name="act-${i}" value="${v}"${v===1?" checked":""}>${v}</label>`;
+  sc+=`</div>`;
+  const fixo=(ENUNCIADOS_ACT[i]||"").trim();
+  row.innerHTML=`<div class="q-txt"><span class="q-n">${i}</span><input type="text" data-act-item="${i}" value="${fixo.replace(/"/g,"&quot;")}" placeholder="enunciado do item ${i}"></div>${sc}`;
+  actC.appendChild(row);
+}
+
+/* ===== Navegação ===== */
+document.querySelectorAll(".step").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".step").forEach(x=>x.classList.remove("on"));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("on"));
+  b.classList.add("on");
+  document.getElementById("panel-"+b.dataset.tab).classList.add("on");
+  window.scrollTo({top:0,behavior:"instant"});
+}));
+
+/* ===== Glossários ===== */
+document.querySelectorAll(".gloss-btn").forEach(btn=>btn.addEventListener("click",e=>{
+  e.preventDefault();e.stopPropagation();
+  const g=document.getElementById("gloss-"+btn.dataset.gloss);
+  if(g)g.classList.toggle("open");
+}));
+
+/* ===== Sincronia visual dos controles ===== */
+function syncGroups(){
+  document.querySelectorAll(".opts,.q-scale,.seg").forEach(group=>{
+    const inputs=group.querySelectorAll("input[type=radio]");
+    inputs.forEach(inp=>{
+      if(inp._s)return;inp._s=true;
+      inp.addEventListener("change",()=>{
+        group.querySelectorAll("label").forEach(l=>l.classList.remove("on"));
+        inputs.forEach(i=>{if(i.checked)i.closest("label").classList.add("on");});
+        recalcAll();
+      });
+    });
+  });
+}
+syncGroups();
+
+document.getElementById("protocoloSelector").querySelectorAll("input").forEach(inp=>{
+  inp.addEventListener("change",()=>{updateProtocoloVisibility();recalcAll();});
+});
+function updateProtocoloVisibility(){
+  const p=document.querySelector("input[name=protocolo]:checked").value;
+  document.getElementById("tabela5Card").style.display=(p==="aborl")?"block":"none";
+  document.getElementById("euforeaCard").style.display=(p==="euforea")?"block":"none";
+}
+
+document.querySelectorAll("input[type=number],input[type=range],select").forEach(el=>el.addEventListener("input",recalcAll));
+document.querySelectorAll("input[type=checkbox]").forEach(el=>el.addEventListener("change",recalcAll));
+
+function getCosiState(){
+  const g=s=>Number(document.querySelector(`[data-cosi="${s}"]`).value);
+  const a={direito:{maxilar:g("direito.maxilar"),etmoide:g("direito.etmoide"),esfenoide:g("direito.esfenoide"),frontal:g("direito.frontal")},
+           esquerdo:{maxilar:g("esquerdo.maxilar"),etmoide:g("esquerdo.etmoide"),esfenoide:g("esquerdo.esfenoide"),frontal:g("esquerdo.frontal")}};
+  const bt=s=>document.querySelector(`[data-cosi-bonus="${s}"]`).checked;
+  return{achados:a,bonusTurb:{direito:bt("turb.direito"),esquerdo:bt("turb.esquerdo")},bonusDraf3:{direito:bt("draf3.direito"),esquerdo:bt("draf3.esquerdo")}};
+}
+
+let LAST={};
+
+function setVerdict(el,cls,label,num,text){
+  el.className="verdict "+cls;
+  let h="";
+  if(label)h+=`<span class="vl">${label}</span>`;
+  if(num!==null&&num!==undefined)h+=`<span class="vn">${num}</span>`;
+  h+=`<span class="vt">${text}</span>`;
+  el.innerHTML=h;
+}
+
+function recalcAll(){
+  /* Pré-requisito */
+  const prereq=document.querySelector("input[name=prereq]:checked").value;
+  document.getElementById("cosiCard").style.display=prereq==="duvida"?"block":"none";
+  const pb=document.getElementById("prereqBanner");
+  if(prereq==="sim")setVerdict(pb,"ok","Situação",null,"Pré-requisito cumprido");
+  else if(prereq==="nao")setVerdict(pb,"stop","Situação",null,"Pré-requisito não cumprido");
+  else setVerdict(pb,"mute","Situação",null,"Aguardando o cálculo do CoSI");
+
+  let cosiCompleta=null,cosiTotal=null;
+  if(prereq==="duvida"){
+    const{achados,bonusTurb,bonusDraf3}=getCosiState();
+    const c=calcularCoSI(achados,bonusTurb,bonusDraf3);
+    cosiCompleta=c.completa;cosiTotal=c.total;
+    setVerdict(document.getElementById("cosiBanner"),c.completa?"ok":"stop","CoSI",c.total,
+      c.completa?"Cirurgia prévia completa":"Priorizar revisão cirúrgica");
+  }
+
+  /* SNOT-22 */
+  let snotTotal=0;for(let i=1;i<=22;i++){const s=document.querySelector(`input[name="snot-${i}"]:checked`);if(s)snotTotal+=Number(s.value);}
+  document.getElementById("snot-total").innerHTML=`<b>${snotTotal}</b> / 110`;
+  const ptsA=snotTotal<20?0:snotTotal<=50?1:2;
+
+  /* EVA */
+  const evaO=Number(document.getElementById("eva-obstrucao").value);
+  const evaR=Number(document.getElementById("eva-rinorreia").value);
+  document.getElementById("eva-obstrucao-val").textContent=evaO.toFixed(1).replace(".",",");
+  document.getElementById("eva-rinorreia-val").textContent=evaR.toFixed(1).replace(".",",");
+  const evaPior=Math.max(evaO,evaR);
+  document.getElementById("eva-pior").textContent="Pior valor: "+evaPior.toFixed(1).replace(".",",");
+  const ptsB=classificarEva(evaPior);
+
+  /* Olfato */
+  const teste=document.getElementById("olfato-teste").value;
+  const sexo=document.getElementById("olfato-sexo").value;
+  document.getElementById("olfato-sexo").style.display=teste==="upsit"?"block":"none";
+  const olfRaw=document.getElementById("olfato-escore").value.trim();
+  const escO=Number(olfRaw||0);
+  const amb=document.getElementById("olfato-ambiguo");
+  let ptsC,cat;
+  if(olfRaw===""){
+    cat="não informado";ptsC=0;amb.style.display="none";
+    document.getElementById("olfato-resultado").textContent="Informe o escore para classificar";
+  }else{
+    cat=classificarOlfato(teste,escO,sexo);
+    if(cat==="normosmia"){ptsC=0;amb.style.display="none";}
+    else if(cat==="anosmia"){ptsC=2;amb.style.display="none";}
+    else{amb.style.display="block";ptsC=Number(document.querySelector('input[name="olfato-grau"]:checked').value);}
+    document.getElementById("olfato-resultado").textContent="Classificação: "+cat;
+  }
+
+  /* NPS */
+  const npsD=Number(document.querySelector('input[name="nps-d"]:checked').value);
+  const npsE=Number(document.querySelector('input[name="nps-e"]:checked').value);
+  const nps=calcularNPS(npsD,npsE);
+  document.getElementById("nps-resultado").textContent=`Total: ${nps.total} de 8`;
+
+  /* Lund-Mackay */
+  const lmv=s=>Number(document.querySelector(`[data-lm="${s}"]`).value);
+  const lmD={frontal:lmv("direito.frontal"),maxilar:lmv("direito.maxilar"),etmoide_anterior:lmv("direito.etmoide_anterior"),etmoide_posterior:lmv("direito.etmoide_posterior"),esfenoide:lmv("direito.esfenoide"),omc:lmv("direito.omc")};
+  const lmE={frontal:lmv("esquerdo.frontal"),maxilar:lmv("esquerdo.maxilar"),etmoide_anterior:lmv("esquerdo.etmoide_anterior"),etmoide_posterior:lmv("esquerdo.etmoide_posterior"),esfenoide:lmv("esquerdo.esfenoide"),omc:lmv("esquerdo.omc")};
+  const lund=calcularLundMackay(lmD,lmE);
+  document.getElementById("lm-resultado").textContent=`Total: ${lund.total} de 24`;
+
+  /* Itens diretos */
+  const ptsD=Number(document.querySelector('input[name="d"]:checked').value);
+  const ptsE=Number(document.querySelector('input[name="e"]:checked').value);
+  const ptsH=Number(document.querySelector('input[name="h"]:checked').value);
+  const ptsI=Number(document.querySelector('input[name="i"]:checked').value);
+
+  const eosS=Number(document.getElementById("input-eosino-serica").value||0);
+  const ptsJ=eosS<150?0:eosS<=300?1:2;
+  const eosT=Number(document.getElementById("input-eosino-tecidual").value||0);
+  const ptsK=eosT<10?0:eosT<=43?1:2;
+
+  const badges={a:ptsA,b:ptsB,c:ptsC,d:ptsD,e:ptsE,f:nps.pts,g:lund.pts,h:ptsH,i:ptsI,j:ptsJ,k:ptsK};
+  for(const k in badges){
+    const el=document.getElementById("pts-"+k);
+    el.textContent=badges[k];
+    el.classList.toggle("live",badges[k]>0);
+  }
+
+  const tabela5=calcularTabela5(badges);
+
+  /* EUFOREA */
+  const eufCrit={};document.querySelectorAll("[data-euforea]").forEach(el=>eufCrit[el.dataset.euforea]=el.checked);
+  const euforea=calcularEuforea(eufCrit);
+
+  const protocolo=document.querySelector("input[name=protocolo]:checked").value;
+  renderResultado(protocolo,tabela5,euforea,prereq,cosiCompleta);
+
+  /* GINA */
+  const eos=Number(document.getElementById("gina-eos").value||0);
+  const feno=Number(document.getElementById("gina-feno").value||0);
+  const escarro=Number(document.getElementById("gina-escarro").value||0);
+  const alergia=document.getElementById("gina-alergia").checked;
+  const t2=(eos>=150)||(feno>=20)||(escarro>=2)||alergia;
+  setVerdict(document.getElementById("ginaBanner"),t2?"ok":"mute","Fenótipo",null,t2?"Inflamação tipo 2":"Tipo 2 não caracterizado");
+  let aviso="";
+  if(eos>=1500)aviso="Hipereosinofilia acima de 1500 — investigar granulomatose eosinofílica com poliangiite.";
+  else if(eos>=300)aviso="Eosinófilo acima de 300 — considerar causas não asmáticas, como parasitoses.";
+  document.getElementById("ginaAviso").textContent=aviso;
+
+  const exac=Number(document.getElementById("gina-exac").value||0);
+  const ocs=document.getElementById("gina-ocs").checked;
+  const sint=document.getElementById("gina-sintomas").checked;
+  const indAsma=exac>=2||ocs||sint;
+  setVerdict(document.getElementById("ginaIndicBanner"),indAsma?"ok":"mute","Indicação",null,
+    indAsma?"Critério de biológico presente":"Critério não atingido");
+
+  /* ACT */
+  let actTotal=0;for(let i=1;i<=5;i++){const s=document.querySelector(`input[name="act-${i}"]:checked`);if(s)actTotal+=Number(s.value);}
+  const actCl=actTotal>=25?"Totalmente controlada":actTotal>=20?"Parcialmente controlada":"Não controlada";
+  setVerdict(document.getElementById("actBanner"),actTotal>=25?"ok":actTotal>=20?"warn":"stop","Controle",actTotal,actCl);
+
+  /* Tabela 6 */
+  const t6Crit={};document.querySelectorAll("[data-t6]").forEach(el=>t6Crit[el.dataset.t6]=el.checked);
+  const t6=calcularTabela6(t6Crit);
+  const t6cls=t6.classificacao==="não respondedor"?"stop":t6.classificacao==="resposta moderada"?"warn":"ok";
+  setVerdict(document.getElementById("t6Banner"),t6cls,t6.atingidos+" de 5 critérios",null,
+    t6.classificacao.charAt(0).toUpperCase()+t6.classificacao.slice(1)+" — "+t6.conduta);
+
+  /* Trilho de escore */
+  updateGauge(protocolo,tabela5,euforea,{snotTotal,nps,lund,evaPior,cat,actTotal,actCl});
+
+  /* Barra de status */
+  document.getElementById("st-protocolo").textContent=protocolo==="aborl"?"ABORL-CCF":"EUFOREA";
+  document.getElementById("st-snot").textContent=snotTotal;
+  document.getElementById("st-nps").textContent=nps.total;
+  document.getElementById("st-lm").textContent=lund.total;
+  document.getElementById("st-act").textContent=actTotal;
+  document.getElementById("st-escore").textContent=protocolo==="aborl"?tabela5.total:euforea.atingidos;
+
+  LAST={snotTotal,evaO,evaR,evaPior,cat,escO,teste,nps,lund,eosS,eosT,badges,tabela5,euforea,protocolo,prereq,cosiTotal,cosiCompleta,actTotal,actCl,t2,indAsma,t6};
+}
+
+function updateGauge(protocolo,tabela5,euforea,extra){
+  const isA=protocolo==="aborl";
+  const val=isA?tabela5.total:euforea.atingidos;
+  const max=isA?25:5;
+  const cut=isA?14:3;
+  const ind=isA?tabela5.indicado:euforea.indicado;
+
+  document.getElementById("gauge-label").textContent=isA?"Escore de elegibilidade":"Critérios atingidos";
+  document.getElementById("gauge-value").textContent=val;
+  document.getElementById("gauge-den").textContent="/ "+max;
+  document.getElementById("ruler-max").textContent=max;
+  document.getElementById("ruler-cutlab").textContent="corte "+cut;
+
+  const st=document.getElementById("gauge-state");
+  st.textContent=ind?(isA?tabela5.forca.charAt(0).toUpperCase()+tabela5.forca.slice(1):"Indicação satisfeita"):"Abaixo do corte";
+  st.className="gauge-state "+(ind?"ok":"mute");
+
+  const W=220;
+  const x=Math.max(0,Math.min(W,(val/max)*W));
+  const xc=(cut/max)*W;
+  document.getElementById("ruler-fill").setAttribute("x2",x);
+  document.getElementById("ruler-dot").setAttribute("cx",x);
+  document.getElementById("ruler-cut").setAttribute("x1",xc);
+  document.getElementById("ruler-cut").setAttribute("x2",xc);
+
+  const rows=[
+    ["SNOT-22",extra.snotTotal+" / 110"],
+    ["Escore de pólipos",extra.nps.total+" / 8"],
+    ["Lund-Mackay",extra.lund.total+" / 24"],
+    ["EVA (pior)",extra.evaPior.toFixed(1).replace(".",",")],
+    ["Olfato",extra.cat],
+    ["Controle da asma",extra.actTotal+" / 25"],
+  ];
+  document.getElementById("gauge-rows").innerHTML=rows.map(r=>
+    `<div class="grow"><span class="k">${r[0]}</span><span class="v">${r[1]}</span></div>`).join("");
+}
+
+function renderResultado(protocolo,tabela5,euforea,prereq,cosiCompleta){
+  const c=document.getElementById("resultadoContent");
+  if(prereq==="nao"||(prereq==="duvida"&&cosiCompleta===false)){
+    c.innerHTML=`<div class="verdict stop"><span class="vt">${prereq==="nao"?"Pré-requisito cirúrgico não cumprido":"CoSI abaixo de 70 — priorizar cirurgia de revisão"}</span></div>`;
+    return;
+  }
+  let h="";
+  if(protocolo==="aborl"){
+    h+=`<div class="verdict ${tabela5.indicado?"ok":"mute"}"><span class="vl">Diretriz brasileira</span><span class="vn">${tabela5.total}</span><span class="vt">${tabela5.indicado?tabela5.forca.charAt(0).toUpperCase()+tabela5.forca.slice(1):"Abaixo do corte de 14"}</span></div>`;
+  }else{
+    h+=`<div class="verdict ${euforea.indicado?"ok":"mute"}"><span class="vl">EUFOREA</span><span class="vn">${euforea.atingidos}</span><span class="vt">${euforea.indicado?"Indicação satisfeita":"Abaixo do mínimo de 3"}</span></div>`;
+  }
+  const ind=protocolo==="aborl"?tabela5.indicado:euforea.indicado;
+  if(ind){
+    h+=`<div style="margin-top:22px;padding-top:20px;border-top:1px solid var(--rule-soft);">
+      <p class="eyebrow">Conduta</p>
+      <p style="font-family:'Source Serif 4',serif;font-size:19px;font-weight:600;margin:0 0 8px;letter-spacing:-.01em;">Elegível para terapia biológica anti-tipo 2</p>
+      <p style="font-size:13px;color:var(--ink-2);margin:0;max-width:58ch;">A escolha da molécula é decisão do médico assistente, considerando fenótipo, comorbidades e disponibilidade — não é sugerida por esta ferramenta.</p>
+    </div>`;
+  }
+  c.innerHTML=h;
+}
+
+/* ===== Laudo ===== */
+document.getElementById("btn-gerar-laudo").addEventListener("click",()=>{
+  const nome=document.getElementById("laudo-nome").value.trim()||"O(a) paciente";
+  const data=document.getElementById("laudo-data").value.trim();
+  const medico=document.getElementById("laudo-medico").value.trim()||"[médico / CRM]";
+  const cirurgias=document.getElementById("laudo-cirurgias").value.trim();
+  const recidiva=document.getElementById("laudo-recidiva").value.trim();
+  const topico=document.getElementById("laudo-topico").value.trim()||"corticoide nasal tópico";
+  const tipo=document.querySelector('input[name="laudotipo"]:checked').value;
+  const molecula=document.getElementById("laudo-molecula").value.trim();
+  const L=LAST,b=L.badges;
+
+  const crit=[];
+  crit.push(`( ${L.snotTotal>=40?"X":" "} ) Impacto na qualidade de vida — SNOT-22 = ${L.snotTotal} (alterado quando 40 ou mais)`);
+  crit.push(`( ${b.e>0?"X":" "} ) Uso de corticoide sistêmico no último ano (alterado a partir de 2 ciclos)`);
+  crit.push(`( ${b.h>=2?"X":" "} ) Asma comórbida moderada ou grave (alterado quando presente)`);
+  crit.push(`( ${L.cat==="anosmia"?"X":" "} ) Perda do olfato — ${L.cat} ao ${L.teste.toUpperCase()} (alterado na anosmia)`);
+  const t2=(L.eosS>=250)||(L.eosT>=10);
+  crit.push(`( ${t2?"X":" "} ) Inflamação tipo 2 — eosinófilos séricos ${L.eosS} céls/µL e teciduais ${L.eosT}/CGA (alterado com tecidual a partir de 10 ou sérico a partir de 250)`);
+  const nAlt=crit.filter(x=>x.startsWith("( X )")).length;
+
+  let out="";
+  out+=`LAUDO MÉDICO — INDICAÇÃO DE IMUNOBIOLÓGICO EM RSCcPN\n`;
+  out+=`Paciente: ${nome}${data?"     Data: "+data:""}\n\n`;
+
+  let ap=`${nome} apresenta rinossinusite crônica com polipose nasossinusal bilateral`;
+  if(cirurgias)ap+=` e foi submetido(a) a ${cirurgias}`;
+  if(recidiva)ap+=`, com recidiva dos pólipos e dos sintomas ${recidiva}`;
+  ap+=`. Mantém recidiva dos sintomas mesmo em uso de ${topico}.`;
+  if(b.e>0)ap+=` Referia ainda necessidade de corticoide oral para controle da doença no último ano.`;
+  ap+=` Além da recidiva da polipose após todas as cirurgias, apresentava os critérios abaixo alterados:`;
+  out+=ap+"\n\n"+crit.join("\n")+"\n\n";
+
+  if(tipo==="indicacao"){
+    let j=`Uma vez que apresenta ${nAlt} dos critérios acima (alterado quando 3 ou mais estiverem presentes em pacientes já submetidos à sinusectomia, ou 4 ou mais quando não submetidos à cirurgia e com contraindicação cirúrgica); e considerando que, segundo a literatura médica vigente, não existe outra alternativa de tratamento para o caso; que novas crises de rinossinusite podem resultar em crises de asma grave, com necessidade de internação, permanência em unidade de terapia intensiva e óbito; apresenta indicação para início imediato de terapia imunobiológica`;
+    j+= molecula?` — ${molecula}.`:` anti-tipo 2, com a molécula a ser definida pelo médico assistente.`;
+    out+=j+"\n";
+  }else{
+    out+=`Após o início da terapia imunobiológica${molecula?" com "+molecula:""}, o(a) paciente apresenta controle clínico efetivo, com melhora dos critérios previamente alterados desde os seis meses de uso — na reavaliação formal, ${L.t6.atingidos} de 5 critérios de resposta foram atingidos, caracterizando ${L.t6.classificacao}:\n\n`;
+    out+=`( X ) Impacto na qualidade de vida — SNOT-22 = ${L.snotTotal}\n`;
+    out+=`( X ) Uso de corticoide oral — ${b.e>0?"ainda presente":"ausente"}\n`;
+    out+=`( X ) Olfato — ${L.cat==="normosmia"?"normalizado":L.cat}\n`;
+    out+=`( X ) Polipose nasal — ${L.nps.total===0?"ausente":"escore "+L.nps.total+" de 8"}\n\n`;
+    out+=`Considerando a história de múltiplas recidivas após cirurgia, a gravidade da doença de base, o perfil inflamatório tipo 2 exuberante e o risco concreto de nova progressão com necessidade de corticosteroide sistêmico e/ou nova cirurgia, está indicada a manutenção de terapia imunobiológica contínua. Solicito, portanto, a manutenção do fornecimento`;
+    out+= molecula?` de ${molecula}`:` do imunobiológico em uso`;
+    out+=`, a fim de evitar descompensação clínica, recidiva grave da polipose, retorno do uso frequente de corticosteroides sistêmicos e necessidade de nova intervenção cirúrgica.\n`;
+  }
+
+  if(L.protocolo==="aborl"){
+    out+=`\nPontuação de elegibilidade pela diretriz brasileira: ${L.tabela5.total} de 25 — ${L.tabela5.indicado?L.tabela5.forca:"abaixo do corte de 14"}.`;
+  }else{
+    out+=`\nCritérios EUFOREA: ${L.euforea.atingidos} de 5 — ${L.euforea.indicado?"indicação satisfeita":"abaixo do mínimo de 3"}.`;
+  }
+
+  out+=`\n\n${medico}\n\n`;
+  out+=`Referências\n`;
+  out+=`1. Anselmo-Lima WT, Romano FR, Tamashiro E, et al. Brazilian guideline for the use of immunobiologicals in chronic rhinosinusitis with nasal polyps — 2024 update. Braz J Otorhinolaryngol. 2024;90(3):101394.\n`;
+  out+=`2. Orlandi RR, Kingdom TT, Smith TL, et al. International consensus statement on allergy and rhinology: rhinosinusitis 2021. Int Forum Allergy Rhinol. 2021;11(3):213-739.\n`;
+  out+=`3. Fokkens WJ, Lund VJ, Hopkins C, et al. European Position Paper on Rhinosinusitis and Nasal Polyps 2020. Rhinology. 2020;58(Suppl S29):1-464.\n`;
+  out+=`4. Fokkens WJ, Backer V, Lund VJ, et al. Pocket guide: biologics in upper and lower airways in adults. Rhinology. 2025;63(2):242-244.\n\n`;
+  out+=`— Documento gerado pelo Polyps 360-3D, ferramenta educacional de apoio ao raciocínio clínico. Não substitui o julgamento do médico assistente.`;
+
+  document.getElementById("laudoOut").textContent=out;
+});
+document.getElementById("btn-imprimir").addEventListener("click",()=>window.print());
+
+/* ===== Persistência dos enunciados =====
+   Os enunciados do SNOT-22 e do ACT ficam salvos neste navegador, neste
+   computador. Ao abrir o arquivo de novo, voltam preenchidos.
+   Exportar e importar servem para levar os textos a outro computador. */
+const STORE_KEY="polyps360.enunciados.v1";
+
+function coletarEnunciados(){
+  const d={snot:{},act:{}};
+  document.querySelectorAll("[data-snot-item]").forEach(el=>{
+    if(el.value.trim())d.snot[el.dataset.snotItem]=el.value;
+  });
+  document.querySelectorAll("[data-act-item]").forEach(el=>{
+    if(el.value.trim())d.act[el.dataset.actItem]=el.value;
+  });
+  return d;
+}
+function aplicarEnunciados(d){
+  if(!d)return;
+  /* O texto fixo escrito no código tem prioridade: só preenche pelo
+     armazenamento os itens que ficaram vazios lá em cima. */
+  if(d.snot)for(const k in d.snot){
+    const el=document.querySelector(`[data-snot-item="${k}"]`);
+    if(el&&!(ENUNCIADOS_SNOT22[k]||"").trim())el.value=d.snot[k];
+  }
+  if(d.act)for(const k in d.act){
+    const el=document.querySelector(`[data-act-item="${k}"]`);
+    if(el&&!(ENUNCIADOS_ACT[k]||"").trim())el.value=d.act[k];
+  }
+}
+function marcarSalvo(msg){
+  const st=document.getElementById("save-state");if(!st)return;
+  if(msg){st.textContent=msg;return;}
+  const d=coletarEnunciados();
+  const n=Object.keys(d.snot).length,m=Object.keys(d.act).length;
+  st.textContent=(n+m)===0?"Nenhum enunciado salvo neste navegador"
+    :`Salvo — ${n} de 22 no SNOT-22, ${m} de 5 no ACT`;
+}
+function salvarEnunciados(){
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(coletarEnunciados()));marcarSalvo();}
+  catch(e){marcarSalvo("Este navegador não permitiu salvar");}
+}
+function carregarEnunciados(){
+  try{
+    const raw=localStorage.getItem(STORE_KEY);
+    if(raw)aplicarEnunciados(JSON.parse(raw));
+  }catch(e){}
+  marcarSalvo();
+}
+let saveTimer=null;
+function agendarSalvamento(){
+  const st=document.getElementById("save-state");
+  if(st)st.textContent="Salvando…";
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(salvarEnunciados,600);
+}
+document.querySelectorAll("[data-snot-item],[data-act-item]").forEach(el=>{
+  el.addEventListener("input",agendarSalvamento);
+});
+
+document.getElementById("btn-exportar-enunciados").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(coletarEnunciados(),null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="polyps360-enunciados.json";
+  a.click();URL.revokeObjectURL(a.href);
+});
+document.getElementById("btn-importar-enunciados").addEventListener("click",()=>{
+  document.getElementById("file-importar").click();
+});
+document.getElementById("file-importar").addEventListener("change",function(){
+  const f=this.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{aplicarEnunciados(JSON.parse(r.result));salvarEnunciados();recalcAll();}
+    catch(e){marcarSalvo("Arquivo inválido");}
+  };
+  r.readAsText(f);this.value="";
+});
+document.getElementById("btn-limpar-enunciados").addEventListener("click",()=>{
+  if(!confirm("Apagar os enunciados salvos neste navegador?"))return;
+  document.querySelectorAll("[data-snot-item],[data-act-item]").forEach(el=>el.value="");
+  try{localStorage.removeItem(STORE_KEY);}catch(e){}
+  marcarSalvo();
+});
+
+carregarEnunciados();
+updateProtocoloVisibility();
+recalcAll();
+</script>
+</body>
+</html>
