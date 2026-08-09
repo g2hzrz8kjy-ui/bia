@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Polyps 360-3D</title>
+<title>POLYPS 3D — Visão 360° da rinossinusite</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
@@ -57,12 +57,13 @@ button{font:inherit;color:inherit;}
 .mark svg{width:26px;height:20px;flex-shrink:0;}
 .mark-name{
   font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;
-  color:#F5F1EA;letter-spacing:.005em;line-height:1;white-space:nowrap;
+  color:#F5F1EA;letter-spacing:.02em;line-height:1;white-space:nowrap;
 }
 .mark-name span{
-  display:block;font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:500;
-  letter-spacing:.22em;color:var(--gold);margin-top:3px;
+  display:block;font-family:'IBM Plex Sans',sans-serif;font-size:7.5px;font-weight:500;
+  letter-spacing:.17em;color:var(--gold);margin-top:4px;
 }
+@media(max-width:720px){.mark-name span{display:none;}}
 .protocol{display:flex;align-items:center;gap:10px;min-width:0;}
 .protocol-lab{
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;
@@ -174,6 +175,19 @@ button{font:inherit;color:inherit;}
 .gloss li{margin-bottom:5px;}
 .gloss li:last-child{margin-bottom:0;}
 
+/* Bloco de orientação inicial */
+.tip{
+  display:flex;gap:13px;align-items:flex-start;
+  background:var(--gold-wash);border:1px solid #E8DCC0;border-radius:4px;
+  padding:15px 17px;margin-bottom:24px;font-size:12.5px;line-height:1.6;color:var(--ink-2);
+}
+.tip strong{display:block;color:var(--ink);font-weight:600;margin-bottom:3px;}
+.tip-icon{
+  width:20px;height:20px;border-radius:50%;background:var(--paper);
+  border:1px solid var(--gold);color:var(--gold-ink);font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+}
+
 /* Controles */
 .opts{display:flex;gap:6px;flex-wrap:wrap;}
 .opts label{
@@ -229,7 +243,8 @@ input[type=range]{width:100%;accent-color:var(--gold);height:22px;cursor:pointer
 /* Grades de pontuação */
 .grid-lm,.grid-cosi{display:grid;gap:7px 12px;align-items:center;}
 .grid-lm{grid-template-columns:minmax(0,1fr) 74px 74px;}
-.grid-cosi{grid-template-columns:minmax(0,1fr) 78px 78px;}
+.grid-cosi{grid-template-columns:minmax(0,1fr) 78px 78px;margin-bottom:7px;}
+.grid-cosi + .gloss{margin-top:0;margin-bottom:10px;}
 .grid-h{
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:.1em;
   text-transform:uppercase;color:var(--ink-3);text-align:center;padding-bottom:2px;
@@ -265,20 +280,39 @@ input[type=range]{width:100%;accent-color:var(--gold);height:22px;cursor:pointer
 }
 .q-total b{font-size:15px;font-weight:600;color:var(--ink);}
 
-/* Barra de salvamento dos enunciados */
-.save-bar{
-  display:flex;align-items:center;gap:9px;flex-wrap:wrap;
-  padding:9px 12px;margin:0 0 14px;background:var(--desk-2);
-  border-radius:3px;font-size:11.5px;color:var(--ink-2);
+/* Legenda da escala de resposta */
+.scale-key{
+  background:var(--desk-2);border-radius:3px;padding:11px 13px;margin-bottom:13px;
+  font-size:11px;color:var(--ink-2);
 }
-.save-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;}
-.save-acts{margin-left:auto;display:flex;gap:5px;}
-.mini{
-  font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:500;
-  padding:4px 10px;border-radius:3px;border:1px solid var(--rule);
-  background:var(--paper);color:var(--ink-2);cursor:pointer;transition:all .12s;
+.sk-lead{
+  display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px;
 }
-.mini:hover{border-color:var(--ink-3);color:var(--ink);}
+.sk-items{display:flex;flex-wrap:wrap;gap:5px 16px;}
+.sk-items span{display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.sk-items b{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;color:var(--paper);
+  background:var(--espresso);width:17px;height:17px;border-radius:3px;
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+
+/* Âncoras de resposta do ACT, item a item */
+.act-item{border-bottom:1px solid var(--rule-soft);padding-bottom:9px;margin-bottom:4px;}
+.act-item:last-child{border-bottom:none;}
+.act-item .q{border-bottom:none;padding-bottom:2px;}
+.act-anchors{
+  display:flex;flex-wrap:wrap;gap:4px 14px;padding:2px 0 0 29px;
+  font-size:10.5px;color:var(--ink-3);
+}
+.act-anchors span{display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.act-anchors b{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;
+  color:var(--gold-ink);background:var(--gold-wash);border:1px solid #E8DCC0;
+  width:15px;height:15px;border-radius:2px;
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+@media(max-width:640px){.act-anchors{padding-left:0;}}
 
 /* ============ VEREDITOS ============ */
 .verdict{
@@ -390,7 +424,7 @@ input[type=range]{width:100%;accent-color:var(--gold);height:22px;cursor:pointer
       <path d="M22 40C22 22 34 10 42 8" fill="none" stroke="#B8893C" stroke-width="5" stroke-linecap="round"/>
       <path d="M40 40C40 18 54 4 58 3" fill="none" stroke="#B8893C" stroke-width="5" stroke-linecap="round"/>
     </svg>
-    <div class="mark-name">Polyps<span>360 · 3D</span></div>
+    <div class="mark-name">POLYPS 3D<span>VISÃO 360° DA RINOSSINUSITE</span></div>
   </div>
   <div class="protocol">
     <span class="protocol-lab">Diretriz</span>
@@ -423,6 +457,14 @@ input[type=range]{width:100%;accent-color:var(--gold);height:22px;cursor:pointer
         <p class="eyebrow">Etapa 01</p>
         <h1 class="page-title">Pré-requisito cirúrgico</h1>
         <p class="page-sub">RSCcPN confirmada com cirurgia nasossinusal prévia adequada — abertura ampla de maxilar, etmoide e esfenoide, com acesso frontal Draf IIa ou mais amplo — ou contraindicação cirúrgica absoluta.</p>
+      </div>
+
+      <div class="tip">
+        <span class="tip-icon">?</span>
+        <div>
+          <strong>Em dúvida sobre algum item?</strong>
+          Sempre que aparecer este símbolo ao lado de um campo, clique nele para abrir a explicação: o que o item significa, como classificar e quanto vale cada resposta na pontuação final. Clique de novo para fechar.
+        </div>
       </div>
 
       <div class="f">
@@ -461,18 +503,60 @@ input[type=range]{width:100%;accent-color:var(--gold);height:22px;cursor:pointer
         <div class="group-head"><span class="gl">Achado por seio</span><span class="gr"></span></div>
         <div class="grid-cosi">
           <span></span><span class="grid-h">Direito</span><span class="grid-h">Esquerdo</span>
-          <span class="grid-r">Maxilar</span>
+          <span class="grid-r">Maxilar <button class="gloss-btn" data-gloss="cosi-max">?</button></span>
           <select data-cosi="direito.maxilar"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
           <select data-cosi="esquerdo.maxilar"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
-          <span class="grid-r">Etmoidal</span>
+        </div>
+        <div class="gloss" id="gloss-cosi-max">
+          <strong>Seio maxilar</strong>
+          <ul>
+            <li><strong>0</strong> — antrostomia não realizada; o óstio natural permanece com a anatomia original.</li>
+            <li><strong>5</strong> — antrostomia visível, porém parcial: abertura identificável, mas abaixo de 70% da parede medial.</li>
+            <li><strong>10</strong> — antrostomia ampla, acima de 70% da extensão possível da parede medial.</li>
+          </ul>
+        </div>
+
+        <div class="grid-cosi">
+          <span class="grid-r">Etmoidal <button class="gloss-btn" data-gloss="cosi-etm">?</button></span>
           <select data-cosi="direito.etmoide"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
           <select data-cosi="esquerdo.etmoide"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
-          <span class="grid-r">Esfenoidal</span>
+        </div>
+        <div class="gloss" id="gloss-cosi-etm">
+          <strong>Seio etmoidal</strong>
+          <ul>
+            <li><strong>0</strong> — etmoidectomia não realizada; células etmoidais íntegras.</li>
+            <li><strong>5</strong> — etmoidectomia parcial: parte das células foi removida, mas restam septações e lamelas.</li>
+            <li><strong>10</strong> — etmoidectomia completa: remoção total das células, da lâmina papirácea à lamela basal, com cavidade única.</li>
+          </ul>
+        </div>
+
+        <div class="grid-cosi">
+          <span class="grid-r">Esfenoidal <button class="gloss-btn" data-gloss="cosi-esf">?</button></span>
           <select data-cosi="direito.esfenoide"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
           <select data-cosi="esquerdo.esfenoide"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
-          <span class="grid-r">Frontal</span>
+        </div>
+        <div class="gloss" id="gloss-cosi-esf">
+          <strong>Seio esfenoidal</strong>
+          <ul>
+            <li><strong>0</strong> — esfenoidotomia não realizada; óstio natural preservado.</li>
+            <li><strong>5</strong> — esfenoidotomia parcial: abertura visível, porém abaixo de 70% da parede anterior.</li>
+            <li><strong>10</strong> — esfenoidotomia ampla, acima de 70% da parede anterior do seio.</li>
+          </ul>
+        </div>
+
+        <div class="grid-cosi">
+          <span class="grid-r">Frontal <button class="gloss-btn" data-gloss="cosi-fro">?</button></span>
           <select data-cosi="direito.frontal"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
           <select data-cosi="esquerdo.frontal"><option value="0">0</option><option value="5">5</option><option value="10">10</option></select>
+        </div>
+        <div class="gloss" id="gloss-cosi-fro">
+          <strong>Seio frontal</strong>
+          <ul>
+            <li><strong>0</strong> — recesso frontal não abordado.</li>
+            <li><strong>5</strong> — acesso tipo <strong>Draf 2a</strong>: remoção das células do recesso frontal, preservando a parede medial junto à concha média.</li>
+            <li><strong>10</strong> — acesso tipo <strong>Draf 2b</strong>: alargamento até o septo nasal, com remoção do assoalho frontal daquele lado.</li>
+          </ul>
+          O <strong>Draf 3</strong>, quando realizado, é marcado à parte no campo de acréscimos abaixo, somando 10 pontos.
         </div>
       </div>
 
@@ -510,14 +594,15 @@ input[type=range]{width:100%;accent-color:var(--gold);height:22px;cursor:pointer
             Questionário de qualidade de vida nasossinusal com 22 itens, cada um de 0 (nenhum problema) a 5 (problema gravíssimo), somando até 110. Na pontuação da diretriz: abaixo de 20 não pontua, de 20 a 50 vale 1 ponto, acima de 50 vale 2 pontos.
             <br><br><em>Cole os enunciados da sua cópia licenciada nos campos abaixo.</em>
           </div>
-          <div class="save-bar">
-            <span class="save-dot"></span>
-            <span id="save-state">Nenhum enunciado salvo neste navegador</span>
-            <span class="save-acts">
-              <button class="mini" id="btn-exportar-enunciados">Exportar</button>
-              <button class="mini" id="btn-importar-enunciados">Importar</button>
-              <button class="mini" id="btn-limpar-enunciados">Limpar</button>
-              <input type="file" id="file-importar" accept="application/json" style="display:none;">
+          <div class="scale-key">
+            <span class="sk-lead">Escala de resposta</span>
+            <span class="sk-items">
+              <span><b>0</b> Nenhum problema</span>
+              <span><b>1</b> Problema muito leve</span>
+              <span><b>2</b> Problema leve</span>
+              <span><b>3</b> Problema moderado</span>
+              <span><b>4</b> Problema grave</span>
+              <span><b>5</b> Pior problema possível</span>
             </span>
           </div>
           <div id="snotContainer"></div>
@@ -727,7 +812,7 @@ input[type=range]{width:100%;accent-color:var(--gold);height:22px;cursor:pointer
             <span class="f-name"><span class="f-key">j</span> Eosinofilia sérica</span>
             <span class="pts" id="pts-j">0</span>
           </div>
-          <input type="number" id="input-eosino-serica" min="0" value="120">
+          <input type="number" id="input-eosino-serica" min="0" value="0">
           <p class="f-hint">Células por microlitro. Abaixo de 150 não pontua, 150 a 300 vale 1 ponto, acima de 300 vale 2 pontos.</p>
         </div>
 
@@ -736,7 +821,7 @@ input[type=range]{width:100%;accent-color:var(--gold);height:22px;cursor:pointer
             <span class="f-name"><span class="f-key">k</span> Eosinofilia tecidual</span>
             <span class="pts" id="pts-k">0</span>
           </div>
-          <input type="number" id="input-eosino-tecidual" min="0" value="5">
+          <input type="number" id="input-eosino-tecidual" min="0" value="0">
           <p class="f-hint">Por campo de grande aumento. Abaixo de 10 não pontua, 10 a 43 vale 1 ponto, acima de 43 vale 2 pontos.</p>
         </div>
       </div>
@@ -789,11 +874,11 @@ input[type=range]{width:100%;accent-color:var(--gold);height:22px;cursor:pointer
       <div class="two" style="margin-top:20px;">
         <div class="f" style="border:none;padding:0;">
           <p class="f-hint" style="margin:0 0 6px;">Eosinófilo sanguíneo · células/µL</p>
-          <input type="number" id="gina-eos" value="200">
+          <input type="number" id="gina-eos" value="0">
         </div>
         <div class="f" style="border:none;padding:0;">
           <p class="f-hint" style="margin:0 0 6px;">FeNO · ppb</p>
-          <input type="number" id="gina-feno" value="18">
+          <input type="number" id="gina-feno" value="0">
         </div>
       </div>
       <div class="two" style="margin-top:14px;">
@@ -818,7 +903,7 @@ input[type=range]{width:100%;accent-color:var(--gold);height:22px;cursor:pointer
       </div>
       <div class="f">
         <p class="f-hint" style="margin:0 0 6px;">Exacerbações no último ano</p>
-        <input type="number" id="gina-exac" value="2">
+        <input type="number" id="gina-exac" value="0">
       </div>
       <label class="check"><input type="checkbox" id="gina-ocs">Uso crônico de corticoide oral</label>
       <label class="check"><input type="checkbox" id="gina-sintomas">Sintomas persistentes apesar de corticoide inalatório com broncodilatador de longa ação otimizados</label>
@@ -836,11 +921,7 @@ input[type=range]{width:100%;accent-color:var(--gold);height:22px;cursor:pointer
       <div class="gloss" id="gloss-act">
         Escore abaixo de 20 indica asma não controlada, de 20 a 24 parcialmente controlada, e 25 totalmente controlada. Alimenta o critério de controle da asma no acompanhamento.
       </div>
-      <div class="save-bar" style="margin-top:16px;">
-        <span class="save-dot"></span>
-        <span>Os enunciados ficam salvos junto com os do SNOT-22, na etapa 02.</span>
-      </div>
-      <div id="actContainer"></div>
+      <div id="actContainer" style="margin-top:16px;"></div>
       <div id="actBanner" class="verdict" style="margin-top:18px;"></div>
     </div>
   </section>
@@ -978,8 +1059,7 @@ function calcularTabela6(c){const a=Object.values(c).filter(Boolean).length;let 
    Se o texto tiver aspas duplas dentro, troque-as por aspas simples.
    ═══════════════════════════════════════════════════════════════════════ */
 
-const ENUNCIADOS_SNOT22 = {
-   1: "Necessidade de assoar o nariz",
+con   1: "Necessidade de assoar o nariz",
    2: "Espirros",
    3: "Nariz escorrendo",
    4: "Tosse",
@@ -1025,15 +1105,29 @@ for(let i=1;i<=22;i++){
   row.innerHTML=`<div class="q-txt"><span class="q-n">${i}</span><input type="text" data-snot-item="${i}" value="${fixo.replace(/"/g,"&quot;")}" placeholder="enunciado do item ${i}"></div>${sc}`;
   snotC.appendChild(row);
 }
+const ANCORAS_ACT = {
+  1: ["Todo o tempo","Maioria das vezes","Algumas vezes","Poucas vezes","Nenhuma vez"],
+  2: ["Totalmente descontrolada","Pobremente controlada","Um pouco controlada","Bem controlada","Completamente controlada"],
+  3: ["Mais que uma vez ao dia","Uma vez ao dia","Três a seis vezes por semana","Uma ou duas vezes por semana","De jeito nenhum"],
+  4: ["Quatro ou mais noites por semana","Duas ou três noites por semana","Uma vez por semana","Uma ou duas vezes","De jeito nenhum"],
+  5: ["Três ou mais vezes por dia","Uma ou duas vezes por dia","Poucas vezes por semana","Uma vez por semana ou menos","De jeito nenhum"]
+};
+
 const actC=document.getElementById("actContainer");
 for(let i=1;i<=5;i++){
-  const row=document.createElement("div");row.className="q";
+  const wrap=document.createElement("div");wrap.className="act-item";
   let sc=`<div class="q-scale">`;
   for(let v=1;v<=5;v++)sc+=`<label${v===1?' class="on"':''}><input type="radio" name="act-${i}" value="${v}"${v===1?" checked":""}>${v}</label>`;
   sc+=`</div>`;
   const fixo=(ENUNCIADOS_ACT[i]||"").trim();
-  row.innerHTML=`<div class="q-txt"><span class="q-n">${i}</span><input type="text" data-act-item="${i}" value="${fixo.replace(/"/g,"&quot;")}" placeholder="enunciado do item ${i}"></div>${sc}`;
-  actC.appendChild(row);
+  const anc=ANCORAS_ACT[i].map((t,idx)=>
+    `<span><b>${idx+1}</b> ${t}</span>`).join("");
+  wrap.innerHTML=
+    `<div class="q">
+       <div class="q-txt"><span class="q-n">${i}</span><input type="text" data-act-item="${i}" value="${fixo.replace(/"/g,"&quot;")}" placeholder="enunciado do item ${i}"></div>${sc}
+     </div>
+     <div class="act-anchors">${anc}</div>`;
+  actC.appendChild(wrap);
 }
 
 /* ===== Navegação ===== */
@@ -1355,98 +1449,12 @@ document.getElementById("btn-gerar-laudo").addEventListener("click",()=>{
   out+=`2. Orlandi RR, Kingdom TT, Smith TL, et al. International consensus statement on allergy and rhinology: rhinosinusitis 2021. Int Forum Allergy Rhinol. 2021;11(3):213-739.\n`;
   out+=`3. Fokkens WJ, Lund VJ, Hopkins C, et al. European Position Paper on Rhinosinusitis and Nasal Polyps 2020. Rhinology. 2020;58(Suppl S29):1-464.\n`;
   out+=`4. Fokkens WJ, Backer V, Lund VJ, et al. Pocket guide: biologics in upper and lower airways in adults. Rhinology. 2025;63(2):242-244.\n\n`;
-  out+=`— Documento gerado pelo Polyps 360-3D, ferramenta educacional de apoio ao raciocínio clínico. Não substitui o julgamento do médico assistente.`;
+  out+=`— Documento gerado pelo POLYPS 3D, ferramenta educacional de apoio ao raciocínio clínico. Não substitui o julgamento do médico assistente.`;
 
   document.getElementById("laudoOut").textContent=out;
 });
 document.getElementById("btn-imprimir").addEventListener("click",()=>window.print());
 
-/* ===== Persistência dos enunciados =====
-   Os enunciados do SNOT-22 e do ACT ficam salvos neste navegador, neste
-   computador. Ao abrir o arquivo de novo, voltam preenchidos.
-   Exportar e importar servem para levar os textos a outro computador. */
-const STORE_KEY="polyps360.enunciados.v1";
-
-function coletarEnunciados(){
-  const d={snot:{},act:{}};
-  document.querySelectorAll("[data-snot-item]").forEach(el=>{
-    if(el.value.trim())d.snot[el.dataset.snotItem]=el.value;
-  });
-  document.querySelectorAll("[data-act-item]").forEach(el=>{
-    if(el.value.trim())d.act[el.dataset.actItem]=el.value;
-  });
-  return d;
-}
-function aplicarEnunciados(d){
-  if(!d)return;
-  /* O texto fixo escrito no código tem prioridade: só preenche pelo
-     armazenamento os itens que ficaram vazios lá em cima. */
-  if(d.snot)for(const k in d.snot){
-    const el=document.querySelector(`[data-snot-item="${k}"]`);
-    if(el&&!(ENUNCIADOS_SNOT22[k]||"").trim())el.value=d.snot[k];
-  }
-  if(d.act)for(const k in d.act){
-    const el=document.querySelector(`[data-act-item="${k}"]`);
-    if(el&&!(ENUNCIADOS_ACT[k]||"").trim())el.value=d.act[k];
-  }
-}
-function marcarSalvo(msg){
-  const st=document.getElementById("save-state");if(!st)return;
-  if(msg){st.textContent=msg;return;}
-  const d=coletarEnunciados();
-  const n=Object.keys(d.snot).length,m=Object.keys(d.act).length;
-  st.textContent=(n+m)===0?"Nenhum enunciado salvo neste navegador"
-    :`Salvo — ${n} de 22 no SNOT-22, ${m} de 5 no ACT`;
-}
-function salvarEnunciados(){
-  try{localStorage.setItem(STORE_KEY,JSON.stringify(coletarEnunciados()));marcarSalvo();}
-  catch(e){marcarSalvo("Este navegador não permitiu salvar");}
-}
-function carregarEnunciados(){
-  try{
-    const raw=localStorage.getItem(STORE_KEY);
-    if(raw)aplicarEnunciados(JSON.parse(raw));
-  }catch(e){}
-  marcarSalvo();
-}
-let saveTimer=null;
-function agendarSalvamento(){
-  const st=document.getElementById("save-state");
-  if(st)st.textContent="Salvando…";
-  clearTimeout(saveTimer);
-  saveTimer=setTimeout(salvarEnunciados,600);
-}
-document.querySelectorAll("[data-snot-item],[data-act-item]").forEach(el=>{
-  el.addEventListener("input",agendarSalvamento);
-});
-
-document.getElementById("btn-exportar-enunciados").addEventListener("click",()=>{
-  const blob=new Blob([JSON.stringify(coletarEnunciados(),null,2)],{type:"application/json"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="polyps360-enunciados.json";
-  a.click();URL.revokeObjectURL(a.href);
-});
-document.getElementById("btn-importar-enunciados").addEventListener("click",()=>{
-  document.getElementById("file-importar").click();
-});
-document.getElementById("file-importar").addEventListener("change",function(){
-  const f=this.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=()=>{
-    try{aplicarEnunciados(JSON.parse(r.result));salvarEnunciados();recalcAll();}
-    catch(e){marcarSalvo("Arquivo inválido");}
-  };
-  r.readAsText(f);this.value="";
-});
-document.getElementById("btn-limpar-enunciados").addEventListener("click",()=>{
-  if(!confirm("Apagar os enunciados salvos neste navegador?"))return;
-  document.querySelectorAll("[data-snot-item],[data-act-item]").forEach(el=>el.value="");
-  try{localStorage.removeItem(STORE_KEY);}catch(e){}
-  marcarSalvo();
-});
-
-carregarEnunciados();
 updateProtocoloVisibility();
 recalcAll();
 </script>
